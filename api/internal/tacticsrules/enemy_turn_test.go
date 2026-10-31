@@ -82,8 +82,8 @@ func TestBlockedEnemyWaitsWithoutPhantomAttackOrTeleport(t *testing.T){
  b.PartyPositions=map[string]Cell{"matthias":{X:6,Y:2}}
  b.Initiative=[]Actor{{Kind:"enemy",ID:"goblin"},{Kind:"party",ID:"matthias"}}
  b.Grid=[]string{
-  "#########","#.......#","#..#.#..#","#..###..#",
-  "#..#.#..#","#.......#","#########",
+  "#########","#.......#","#..###..#","#..#.#..#",
+  "#..###..#","#.......#","#########",
  }
  b.Enemies[0].Cell=Cell{X:4,Y:3}
  b.Anchor=Cell{X:1,Y:1}
