@@ -132,7 +132,7 @@ func DecideEnemyTurn(
  board Snapshot,engagedEnemyIDs []string,round int,
  profiles map[string]EnemyTurnProfile,
 )(EnemyTurnIntent,error){
- if board.Phase!="combat"||board.InitiativeCursor<0||
+ if board.Phase!="combat"||board.TurnPhase!="enemy"||board.InitiativeCursor<0||
   board.InitiativeCursor>=len(board.Initiative){
   return EnemyTurnIntent{},ErrInvalidEnemyTurn
  }

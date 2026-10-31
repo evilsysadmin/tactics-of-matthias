@@ -134,3 +134,8 @@
 - `DecideEnemyTurn` is pure and checks the **current server initiative enemy** against the persisted `engagedEnemyIds`; the browser must never select an AI enemy, target, movement or authored profile.
 - Only `hold` and `cardinal-chase` are supported. Ranged shots use cardinal geometry and authored LOS, while cardinal BFS moves ONE tile towards a real reachable attack position and NEVER attacks after moving. Other AI policies (jump, patrol, awareness, retreat, multi-strike, paralysis) need separate explicit implementations and cannot default to this slice.
 - A movement/attack/wait intent does not resolve damage, statuses, initiative or Mongo CAS. Keep the standalone server unavailable until the complete real Effects reducer is present.
+
+## Pending enemy non-damage stage
+- `StageEnemyNonAttack` must revalidate the private map revision and current enemy actor, apply only a legal one-cell move or wait, and advance initiative ONCE. Do not touch HP, grant a free attack, or accept client-selected AI/positions.
+- When the decision is `attack`, return `ErrEnemyAttackUnresolved` without changing run/version/cursor; do not grant a zero-damage fake hit or skip the enemy's rightful action.
+- Any successful stage still retains the old `worldVersion` and cannot become a CAS checkpoint until ALL Effects are implemented. Keep backend unavailable, no test-world runtime or Identity bypass.
