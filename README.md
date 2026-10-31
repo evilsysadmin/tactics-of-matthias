@@ -2,7 +2,7 @@
 
 RPG táctico isométrico del universo **ShadowOps**. Su origen es el modo Tactics de [Chronicles of Matthias](https://github.com/evilsysadmin/chronicles-of-matthias).
 
-> **Estado: migración en preparación.** Los primeros módulos portables de clases y de geometría de objetivos están en `src/`, con `npm test` y CI. Este repositorio todavía no contiene un juego ejecutable. La versión jugable de Tactics sigue estando en Chronicles mientras trasladamos sus módulos con pruebas y preservamos los guardados existentes.
+> **Estado: migración en preparación.** Los primeros módulos portables de clases y de geometría de objetivos están en `src/`, con `npm test` y CI. Este repositorio ya contiene un scene graph Three.js real, pero aún no tiene cliente web jugable ni bootstrap SSO propios. La versión jugable de Tactics sigue estando en Chronicles mientras trasladamos sus módulos con pruebas y preservamos los guardados existentes.
 
 ## Contratos de independencia
 
@@ -73,3 +73,10 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `src/render/tacticsSpatialRenderPlan.js` transforma las casillas validadas de un frame (obtenido del mapa remoto actual) en coordenadas isométricas 3D, base del tablero, volúmenes de muro, puntos de antorcha, posiciones de actores y marcadores legales.
 - Conserva la escala del renderer original (`2.45` unidades/celda) y la centralización geométrica; el módulo sigue siendo puro e independiente de Three.js para facilitar pruebas y comparación de paridad.
 - **Aún no pinta meshes ni anima sprites**. El siguiente paso será montar un renderizador que consuma este plan y disponga los assets y personajes reales, conectado a una sesión autenticada.
+
+### Escena Three.js (renderer visual en construcción)
+
+- `src/render/tacticsThreeScene.js` construye **objetos Three.js reales** desde un frame validado: suelos y muros instanciados, luces, cámara, marcadores legales y anillos localizadores de los actores vivos. Reutiliza `tacticsSpatialRenderPlan`.
+- `createActorVisual` permite inyectar los modelos/sprites auténticos cuando su pipeline R2 esté listo. Los localizadores de actor no pretenden ser personajes definitivos; las geometrías/materiales creados internamente se liberan con `dispose()`, sin liberar assets compartidos del host.
+- El picking se restringe a marcadores de movimientos/ataques legales y selección de grupo; no concede permiso para ejecutar turnos ni acepta golpes sobre objetos externos a la escena.
+- **Falta el montaje WebGL en navegador, sus controles, auth, assets definitivos, puertos del mundo y staging**. Los tests de Node validan un scene graph Three.js real, no equivalen a smoke visual de Chromium.

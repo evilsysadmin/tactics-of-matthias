@@ -28,3 +28,8 @@
 ## Authoritative scene topology
 - The standalone `tacticsRemoteMapTopology` may only use a current remotely validated map manifest; do not bundle usable fallback maps or infer game rules from tile labels.
 - Test fixtures may reproduce real authored grids to assert parity, but never inject them into production hydration. The host must supply actors and actions from its current, checked world state.
+
+## Real Three scene ownership
+- `src/render/tacticsThreeScene.js` owns only the resources it creates. Actor sprite/model factory owns its own shared geometry/material/texture lifecycle; do not dispose borrowed assets.
+- Keep picking restricted to known legal markers and let the authoritative rule engine revalidate every intent. Do not invent a fallback playable map, browser auth token, or deploy to prod.
+- Node tests of Three scene graphs are not a WebGL/Chromium visual smoke; build a browser host and separately verify its rendering before claiming playable Tactics.

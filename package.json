@@ -3,8 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Standalone Tactics RPG migration (early modules only)",
+  "description": "Standalone Tactics RPG migration (headless runtime and Three scene, not yet a playable app)",
   "scripts": {
     "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.1"
   }
 }
