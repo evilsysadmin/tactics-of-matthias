@@ -92,3 +92,9 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `src/browser/tacticsGameHost.js` integra **únicamente** el ciclo de vida: recibe un loader de mundo **autenticado por el backend**, puertos del juego real, confirmación de checkpoint y un viewport WebGL. No provee ni finge esas integraciones.
 - Solo monta el canvas tras `tacticsCreateSession`. Cancela arranques obsoletos y desmonta escenas al reiniciar. Una acción legal no cambia la escena hasta recibir `commitTransition(...)=true`; bloquea dobles acciones y detiene el juego si falla el guardado o renderizado.
 - Testea todo con loaders/renders de prueba **solo en tests**. Todavía no hay cliente de SSO, API Tactics ni gestor de guardados independiente, por lo que no se debe publicar un acceso jugable.
+
+### Interfaz del host Tactics
+
+- `src/browser/tacticsAppShell.js` monta una pantalla propia con contenedor WebGL, estado de autenticación/arranque, error y reintento; `tacticsAppShell.css` contiene el estilo adaptable a móvil.
+- Si faltan los puertos auténticos del juego/SSO, muestra **servidor pendiente** sin montar escena falsa ni ofrecer una partida inexistente. Los mensajes de error no imprimen excepciones crudas ni posibles secretos.
+- Es un componente de integración, **no todavía el punto de entrada publicado**: faltan Vite build, módulo de SSO real, API y tests de Chromium.
