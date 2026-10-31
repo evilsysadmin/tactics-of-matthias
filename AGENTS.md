@@ -16,3 +16,7 @@
 - New assets should reuse authorized versioned R2 paths where possible; do not check in large or copyrighted third-party binaries.
 - Distinguish PR checks, merged source, staging availability and actual gameplay acceptance; do not treat CI alone as visual validation.
 - Future independent Home entry is launched from Chronicles' existing expedition book.
+
+## Scene migration boundary
+- Keep the v1 renderer-scene adapter data-only. Real maps and legal actions must be produced by a validated game runtime; do not treat a scene fixture as a game world.
+- Do not put saves, identity, progression, story or API credentials into a renderer frame. Version scene inputs explicitly and fail closed on unknown versions.
