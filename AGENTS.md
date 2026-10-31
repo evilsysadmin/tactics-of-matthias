@@ -63,3 +63,8 @@
 ## Mongo storage
 - `api/internal/tacticsmongo` must always bind owner + run ID + expected worldVersion + active status for atomic CAS. No upserts, terminal resurrection or writes to any Chronicles/Chess/Identity database.
 - Mongo CI integration must run only on disposable localhost `shadowops_tactics_ci`; require explicit per-environment connection and dedicated credentials in production. This store does not confer game or identity authority.
+
+## Go movement parity (incomplete authoritative game engine)
+- `api/internal/tacticsrules` owns pure movement legality decisions based on the *server's* state and current map. Do not trust client-supplied party/enemy positions or use a local test map as a runtime fallback.
+- The movement decision is NOT the complete server Engine. Downstream traps/content effects, real initiative, enemy AI and campaign transitions are mandatory before hooking it to `tacticsapi.Engine.Apply`.
+- Preserve source parity: exploration moves do not consume a tactical turn; combat moves have individual party footprints and advance initiative. Deny enemy turns, terminal/dead actors, overlapping pieces, walls, exits and occupied enemy cells.
