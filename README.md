@@ -206,3 +206,9 @@ This corrects an incompatibility left by #30; it does not yet construct the corr
 A fatal trap during an active encounter now clears **all three linked pieces**: `initiative`, `partyPositions` and `engagedEnemyIds`, so the defeated run validates as terminal rather than leaving phantom turns. Tests exercise the live combat-to-defeat stage with a distant enemy still alive.
 
 `validNext` also forbids changing **the current map's ID, revision, grid or title** through a normal movement/attack checkpoint, even when the replacement is structurally valid. Future authored map transitions must pass an explicit separate contract; they are not implicitly granted to arbitrary effects. No Tactics API or Chronicles production behavior is deployed.
+
+### BFS party deployment in Go (server-only)
+
+`tacticsrules.PlanPartyDeployment` ports the real `chroniclesPartyGridFootprint` selection: **BFS radius 6**, up to **24 walk-reachable candidates**, connected clusters, a role-weighted assignment for Matthias/rook/bishop/knight, and facing-relative positioning. It uses the server's current map, alive party, real enemy positions and visible blocking authored content only. It never spawns a member inside an enemy/object or across a wall; when a cramped map cannot fit the living team it **fails closed** rather than teleports. For narrow fallback clusters, living actors are all retained (fixes a legacy sparse-party slot omission). Exits `X` remain blocked, matching Tactics Go movement rules.
+
+The function is pure, uses no client-authored positions, and does not roll initiative, mutate saves or make a playable backend; the encounter-start reducer must combine it with `RollEngagedInitiative` and all remaining effects.

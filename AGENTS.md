@@ -119,3 +119,8 @@
 ## Combat terminal cleanup and authored map integrity
 - Lethal trap transitions must clear `engagedEnemyIds` alongside `initiative` and `partyPositions`, including when a non-engaged living enemy remains on the map.
 - A normal `Engine.Apply` movement or attack must not rewrite `Run.Map` or switch `MapID`. A map migration requires an explicit server-authored, separately validated transition in a later PR. Never treat a well-formed replacement grid as implicitly authorized.
+
+## Connected Go tactical party deployment
+- `PlanPartyDeployment` uses BFS through traversable map cells (not through walls/enemies), finds a connected role-aware cluster near the exploration anchor, avoids server-authored visible blockers, and returns only living canonical party IDs. Never let the client supply blockers or positions.
+- In narrow corridors do not omit a living member merely because the preferred 4-slot role cell is missing. If no connected legal deployment fits, reject rather than teleport across masonry or onto enemies/interactive objects.
+- Keep Go `X` exit blocking consistent with movement legality. A pure formation is not a full encounter or a saved checkpoint; combine with authoritative engagement roll, effects and CAS later.
