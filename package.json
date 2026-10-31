@@ -1,0 +1,10 @@
+{
+  "name": "tactics-of-matthias",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Standalone Tactics RPG migration (early modules only)",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
