@@ -41,3 +41,8 @@
 ## Browser-host authority gate
 - Do not register `createTacticsGameHost` with fake loaders or local saves in runtime: a real authenticated, backend-authorized `loadAuthorizedWorld` and `commitTransition` are mandatory.
 - `source: remote` alone is not authentication. Do not advance displayed frames until the authoritative write is acknowledged; stale loads/actions and denied turns must fail closed.
+
+## Standalone frontend shell
+- Vite 6.4.3 and Three 0.186.1 are pinned; `npm test && npm run build` must pass on PR and main. The page is **not playable** until a real SSO/API Tactics integration supplies the required authenticated host ports.
+- Never wire demo worlds, a fake identity, unacknowledged checkpoint writes, or the Chronicles save endpoint into `src/browser/main.js`. Treat an unavailable service as a visible, honest status, not an opportunity to bypass auth.
+- The source workflow builds only; deployment/production ownership remains with `evilsysadmin/shadowops-infra`.

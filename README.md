@@ -2,7 +2,7 @@
 
 RPG táctico isométrico del universo **ShadowOps**. Su origen es el modo Tactics de [Chronicles of Matthias](https://github.com/evilsysadmin/chronicles-of-matthias).
 
-> **Estado: migración en preparación.** Los primeros módulos portables de clases y de geometría de objetivos están en `src/`, con `npm test` y CI. Este repositorio ya contiene un scene graph Three.js real, pero aún no tiene cliente web jugable ni bootstrap SSO propios. La versión jugable de Tactics sigue estando en Chronicles mientras trasladamos sus módulos con pruebas y preservamos los guardados existentes.
+> **Estado: shell Vite independiente, todavía NO jugable.** Los primeros módulos portables de clases y de geometría de objetivos están en `src/`, con `npm test` y CI. Este repositorio ya contiene un scene graph Three.js real, pero aún no tiene cliente web jugable ni bootstrap SSO propios. La versión jugable de Tactics sigue estando en Chronicles mientras trasladamos sus módulos con pruebas y preservamos los guardados existentes.
 
 ## Contratos de independencia
 
@@ -98,3 +98,18 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `src/browser/tacticsAppShell.js` monta una pantalla propia con contenedor WebGL, estado de autenticación/arranque, error y reintento; `tacticsAppShell.css` contiene el estilo adaptable a móvil.
 - Si faltan los puertos auténticos del juego/SSO, muestra **servidor pendiente** sin montar escena falsa ni ofrecer una partida inexistente. Los mensajes de error no imprimen excepciones crudas ni posibles secretos.
 - Es un componente de integración, **no todavía el punto de entrada publicado**: faltan Vite build, módulo de SSO real, API y tests de Chromium.
+
+### Arranque web del repositorio independiente
+
+El repositorio ya dispone de una página Vite compilable:
+
+```sh
+npm ci --ignore-scripts
+npm test
+npm run dev
+npm run build
+```
+
+En `http://127.0.0.1:5173` se muestra la interfaz Tactics y el estado **«Servidor de Tactics pendiente»**. Esto es intencional: **no hay cuenta, partida ni mundo ficticios**. La interfaz se habilitará cuando ShadowOps Infra y una API Tactics independiente puedan proporcionar loader SSO autorizado, hidratación de mundo/reglas y confirmación de checkpoints; los tests Node actuales no sustituyen una prueba de navegador WebGL.
+
+La CI comprueba tests y `vite build` en cada PR. Este workflow de código fuente no despliega a Cloudflare Pages ni modifica la Home actual de Chronicles.
