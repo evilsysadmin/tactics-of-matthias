@@ -181,3 +181,49 @@ test('mismatched run/version response stops gameplay without displaying predicti
     h.host.dispose();
   }
 });
+
+test('terminal bootstrap is read-only and never mounts a playable canvas', async () => {
+  const terminal = { ...WORLD, worldVersion: 4, runStatus: 'defeated',
+    state: { mapId: 'room', phase: 'defeated', party: [{ id: 'rook', hp: 0 }] } };
+  const h = setup({ loader: async () => terminal });
+  assert.equal(await h.host.start(), true);
+  assert.equal(h.host.status, 'finished');
+  assert.equal(h.host.session.runStatus, 'defeated');
+  assert.equal(h.views.length, 0);
+  assert.equal(h.statuses.at(-1).runStatus, 'defeated');
+  assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
+  h.host.dispose();
+});
+
+test('server-confirmed defeat ends current viewport and cannot accept further moves', async () => {
+  const terminal = { ...WORLD, worldVersion: 4, runStatus: 'defeated',
+    state: { mapId: 'room', phase: 'defeated', party: [{ id: 'rook', hp: 0 }] } };
+  let writes = 0;
+  const h = setup({ commit: async () => { writes++; return terminal; } });
+  await h.host.start();
+  assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), true);
+  assert.equal(h.host.status, 'finished');
+  assert.equal(h.host.session.worldVersion, 4);
+  assert.equal(h.views[0].disposed, true);
+  assert.equal(h.views[0].updates, 0);
+  assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
+  assert.equal(writes, 1);
+  h.host.dispose();
+});
+
+test('forged victory/defeat is not promoted into a terminal session', async () => {
+  for (const state of [
+    { mapId: 'room', phase: 'explore', party: [{ id: 'rook', hp: 0 }] },
+    { mapId: 'room', phase: 'defeated', party: [{ id: 'rook', hp: 4 }] },
+    { mapId: 'other', phase: 'defeated', party: [{ id: 'rook', hp: 0 }] },
+  ]) {
+    const h = setup({ commit: async () => ({
+      ...WORLD, worldVersion: 4, runStatus: 'defeated', state,
+    }) });
+    await h.host.start();
+    assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
+    assert.equal(h.host.status, 'error');
+    assert.equal(h.views[0].updates, 0);
+    h.host.dispose();
+  }
+});

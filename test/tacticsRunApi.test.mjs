@@ -137,3 +137,29 @@ test('invalid action or mismatched run never causes network traffic', async () =
   }), /Tactics/i);
   assert.equal(requests.length, 0);
 });
+
+test('transport accepts validated defeat for read-only bootstrap and last move', async () => {
+  const terminal = world({
+    runStatus: 'defeated', worldVersion: 9,
+    state: { mapId: 'crypt', phase: 'defeated',
+      party: [{ id: 'rook', hp: 0 }] },
+  });
+  const { api, requests } = fixture({ reply: terminal });
+  assert.equal((await api.loadAuthorizedWorld()).runStatus, 'defeated');
+  const saved = await api.commitTransition({
+    previous: { runId: 'run-1', worldVersion: 8,
+      frame: { selectedMemberId: 'rook' } },
+    action: { kind: 'move', x: 2, y: 1 },
+  });
+  assert.equal(saved.runStatus, 'defeated');
+  assert.equal(requests[1].options.method, 'POST');
+});
+
+test('transport rejects counterfeit terminal outcome with living party', async () => {
+  const { api } = fixture({ reply: world({
+    runStatus: 'defeated', worldVersion: 9,
+    state: { mapId: 'crypt', phase: 'defeated',
+      party: [{ id: 'rook', hp: 3 }] },
+  }) });
+  await assert.rejects(api.loadAuthorizedWorld(), error => error.code === 'invalid-world');
+});

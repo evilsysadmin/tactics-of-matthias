@@ -158,15 +158,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     if !validRun(run) || run.ID != parts[0] || run.Owner != owner {
         problem(w, http.StatusServiceUnavailable, "Invalid stored Tactics run"); return
     }
-    if run.Status != "active" {
-        problem(w, http.StatusConflict, "Run is not active"); return
-    }
+    // Terminal runs are owned historical records: bootstrapping them is
+    // read-only and must remain possible after defeat or completion.
     if method == http.MethodGet {
         writeJSON(w, http.StatusOK, struct {
             Source string `json:"source"`
             Run
         }{Source: "remote", Run: run})
         return
+    }
+    if run.Status != "active" {
+        problem(w, http.StatusConflict, "Run is not active"); return
     }
 
     r.Body = http.MaxBytesReader(w, r.Body, 4096)

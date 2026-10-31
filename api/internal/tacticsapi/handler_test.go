@@ -165,3 +165,23 @@ type corruptEngine struct{change func(*Run)}
 func (e corruptEngine) Apply(_ context.Context,run Run,_ Action)(Run,error){
     run.WorldVersion++;e.change(&run);return run,nil
 }
+
+func TestTerminalRunBootstrapReadOnlyAndOwnerScoped(t *testing.T){
+ h,store,engine:=newHandler(t)
+ terminal:=store.runs["alice:run-1"]
+ terminal.Status="defeated"
+ terminal.WorldVersion=3
+ terminal.State=json.RawMessage(`{"phase":"defeated","mapId":"crypt","party":[{"id":"rook","hp":0}]}`)
+ store.runs["alice:run-1"]=terminal
+ own:=call(h,req("GET","/api/tactics/runs/run-1/bootstrap","signed-alice",""))
+ if own.Code!=200 || !strings.Contains(own.Body.String(),`"runStatus":"defeated"`){
+  t.Fatalf("owned terminal bootstrap denied: %d %s",own.Code,own.Body)
+ }
+ foreign:=call(h,req("GET","/api/tactics/runs/run-1/bootstrap","signed-bob",""))
+ if foreign.Code!=404{t.Fatalf("foreign terminal run exposed: %d",foreign.Code)}
+ replay:=call(h,req("POST","/api/tactics/runs/run-1/actions","signed-alice",
+  `{"expectedWorldVersion":3,"action":{"kind":"move","memberId":"rook","x":2,"y":1}}`))
+ if replay.Code!=409 || engine.calls!=0 || store.swaps!=0 {
+  t.Fatalf("terminal action changed saved run: %d engine=%d swaps=%d",replay.Code,engine.calls,store.swaps)
+ }
+}
