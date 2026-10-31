@@ -3,11 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Standalone Tactics RPG migration (headless runtime and Three scene, not yet a playable app)",
+  "description": "Independent Tactics web shell and validated headless 3D runtime; server integration pending",
   "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "three": "0.186.1"
+  },
+  "devDependencies": {
+    "vite": "6.4.3"
   }
 }
