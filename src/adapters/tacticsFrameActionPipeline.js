@@ -1,5 +1,5 @@
 import { tacticsIntentFromFrame } from './tacticsActionIntent.js';
-import { tacticsExecuteAttack, tacticsExecuteMove } from './tacticsActionDispatch.js';
+import { tacticsExecuteAttack, tacticsExecuteMove } from '../tacticsActionDispatch.js';
 
 // Receives an immutable v1 renderer frame and a raw user click; executes through
 // the live game's rule ports, not through the frame's possibly stale permissions.
