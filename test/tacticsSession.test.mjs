@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { tacticsCreateSession, tacticsApplySessionRequest } from '../src/tacticsSession.js';
+import { tacticsCreateSession, tacticsApplySessionRequest, tacticsReconcileServerSession } from '../src/tacticsSession.js';
 
 function remote() {
   return {
@@ -117,4 +117,21 @@ test('a projection error fails closed instead of committing the action', () => {
     { ...harness, projectScene: () => ({ version: 99 }) }), /version/i);
   assert.equal(session.revision, 0);
   assert.equal(session.state.x, 1);
+});
+
+test('server reconciliation requires exact run identity and next remote world version', () => {
+  const { harness } = ports();
+  const current = tacticsCreateSession(remote(), harness);
+  const updated = { ...remote(), worldVersion: 9 };
+  const confirmed = tacticsReconcileServerSession(current, updated, harness);
+  assert.equal(confirmed.worldVersion, 9);
+  assert.equal(confirmed.revision, 1);
+  assert.ok(Object.isFrozen(confirmed));
+  for (const invalid of [
+    { ...updated, source: 'local' },
+    { ...updated, runId: 'wrong' },
+    { ...updated, worldVersion: 8 },
+    { ...updated, worldVersion: 10 },
+    { ...updated, runStatus: 'defeated' },
+  ]) assert.throws(() => tacticsReconcileServerSession(current, invalid, harness), /Tactics/i);
 });

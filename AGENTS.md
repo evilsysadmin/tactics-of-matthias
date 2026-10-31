@@ -51,3 +51,7 @@
 - Go HTTP layer resides in `api/internal/tacticsapi`. A real ShadowOps verifier must check the dedicated `tactics` audience, issuer, signature, expiry and session freshness; do not reuse Chronicles bearer tokens or trust unverified username headers.
 - Server-side engine revalidates every move/attack against authoritative run state. `Store` must atomically compare-and-swap by **owner + run ID + world version**, in a separate Tactics collection. Never expose an unconfigured backend or demo store in production.
 - API tests use in-memory doubles only to verify route authority; passing them does not establish a deployable SSO or Mongo integration. Do not change Chronicles save schemas.
+
+## Server-authoritative display
+- Browser `commitTransition` must return the full, validated server run with the next exact `worldVersion` and matching `runId`. A boolean 2xx/ACK does NOT validate game outcomes.
+- Never promote client-predicted damage, XP or enemy positions after a server write; rehydrate the confirmed world and rebuild the scene from it. Error/rebootstrap on drift.

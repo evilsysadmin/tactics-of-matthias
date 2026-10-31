@@ -67,3 +67,30 @@ export function tacticsApplySessionRequest(session, request, ports) {
     actorMemberId: outcome.actorMemberId,
   });
 }
+
+
+// The browser must display the SERVER'S resolved state, not a local prediction
+// merely because the API returned 2xx. This also handles server-side RNG,
+// enemy reactions and cross-map movement without trusting client checkpoints.
+export function tacticsReconcileServerSession(previous, world, ports) {
+  requirePorts(ports);
+  if (!previous || !Number.isSafeInteger(previous.revision)
+    || world?.source !== 'remote' || world?.runStatus !== 'active'
+    || world?.runId !== previous.runId
+    || !Number.isSafeInteger(world?.worldVersion)
+    || world.worldVersion !== previous.worldVersion + 1
+    || typeof world?.currentMapId !== 'string' || !world.currentMapId) {
+    throw new TypeError('Tactics server response has incompatible run identity or world version');
+  }
+  const state = ports.hydrateState(world);
+  if (state?.mapId !== world.currentMapId) {
+    throw new TypeError('Tactics authoritative state map mismatch');
+  }
+  return Object.freeze({
+    runId: previous.runId,
+    worldVersion: world.worldVersion,
+    revision: previous.revision + 1,
+    state,
+    frame: project(state, ports),
+  });
+}

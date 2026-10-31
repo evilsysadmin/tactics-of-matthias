@@ -8,11 +8,13 @@ const WORLD = {
   worldVersion: 3, currentMapId: 'room',
   map: { id: 'room', title: 'Server room', grid: ['####', '#..#', '####'] },
 };
-function setup({ loader = async () => WORLD, commit = async () => true, renderFailure = false, projectionFailure = false } = {}) {
+function setup({ loader = async () => WORLD,
+  commit = async ({ next }) => ({ ...WORLD, worldVersion: WORLD.worldVersion + 1, state: next.state }),
+  renderFailure = false, projectionFailure = false } = {}) {
   const views = [];
   const statuses = [];
   const ports = {
-    hydrateState: world => ({ mapId: world.currentMapId, x: 1, y: 1, phase: 'explore' }),
+    hydrateState: world => ({ mapId: world.currentMapId, x: world.state?.x ?? 1, y: world.state?.y ?? 1, phase: 'explore' }),
     projectScene: state => {
       if (projectionFailure && state.x === 2) throw new Error('invalid projected scene');
       return tacticsSceneModelFromRemoteWorld(WORLD, state, {
@@ -66,7 +68,7 @@ test('auth-controlled loader gates real scene creation and teardown', async () =
 
 test('only acknowledged, legal actions may reveal a new scene', async () => {
   let commits = 0;
-  const h = setup({ commit: async () => { commits++; return true; } });
+  const h = setup({ commit: async ({ next }) => { commits++; return { ...WORLD, worldVersion: 4, state: next.state }; } });
   await h.host.start();
   assert.equal(await h.host.dispatchAction({ kind: 'attack', enemyId: 'ghost' }), false);
   assert.equal(await h.host.dispatchAction({ kind: 'member', memberId: 'rook' }), false);
@@ -131,7 +133,7 @@ test('simultaneous clicks cannot commit the same turn twice', async () => {
   await h.host.start();
   const first = h.host.dispatchAction({ kind: 'move', x: 2, y: 1 });
   assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
-  done(true);
+  done({ ...WORLD, worldVersion: 4, state: { x: 2, y: 1 } });
   assert.equal(await first, true);
   assert.equal(h.host.session.revision, 1);
   h.host.dispose();
@@ -141,7 +143,7 @@ test('projection failure during input is handled without commit or unhandled poi
   let committed = false;
   const h = setup({ projectionFailure: true, commit: async () => {
     committed = true;
-    return true;
+    return { ...WORLD, worldVersion: 4 };
   } });
   await h.host.start();
   assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
@@ -149,4 +151,33 @@ test('projection failure during input is handled without commit or unhandled poi
   assert.equal(h.host.status, 'error');
   assert.equal(h.host.session.revision, 0);
   h.host.dispose();
+});
+
+test('server outcome, not a locally predicted move, defines the displayed world', async () => {
+  const h = setup({ commit: async () => ({
+    ...WORLD, worldVersion: 4, state: { x: 1, y: 1 },
+  }) });
+  await h.host.start();
+  assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), true);
+  assert.equal(h.host.session.worldVersion, 4);
+  assert.equal(h.host.session.state.x, 1);
+  assert.equal(h.views[0].frame.focusCell.x, 1);
+  h.host.dispose();
+});
+
+test('mismatched run/version response stops gameplay without displaying prediction', async () => {
+  for (const response of [
+    true,
+    { ...WORLD, worldVersion: 3, state: { x: 2, y: 1 } },
+    { ...WORLD, runId: 'someone-elses-run', worldVersion: 4, state: { x: 2, y: 1 } },
+    { ...WORLD, worldVersion: 4, source: 'local', state: { x: 2, y: 1 } },
+  ]) {
+    const h = setup({ commit: async () => response });
+    await h.host.start();
+    assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
+    assert.equal(h.host.status, 'error');
+    assert.equal(h.host.session.revision, 0);
+    assert.equal(h.views[0].updates, 0);
+    h.host.dispose();
+  }
 });

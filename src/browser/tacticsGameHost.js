@@ -1,4 +1,4 @@
-import { tacticsCreateSession, tacticsApplySessionRequest } from '../tacticsSession.js';
+import { tacticsCreateSession, tacticsApplySessionRequest, tacticsReconcileServerSession } from '../tacticsSession.js';
 import { mountTacticsThreeViewport } from '../render/tacticsThreeViewport.js';
 
 // Lifecycle ONLY: authentication, world/turn authority and remote persistence
@@ -53,18 +53,20 @@ export function createTacticsGameHost({
         ...action, revision: before.revision,
       }, ports);
       if (!result) return false;
-      const ack = await commitTransition({
+      const confirmedWorld = await commitTransition({
         previous: before,
         next: result.session,
+        action,
         actionKind: result.actionKind,
         actorMemberId: result.actorMemberId,
         signal,
       });
       if (!valid(generation, signal)) return false;
-      if (ack !== true) throw new Error('Tactics server did not acknowledge transition');
-      // Only a confirmed save may be revealed to the renderer.
-      viewport.updateFrame(result.session.frame);
-      session = result.session;
+      // Rehydrate the actual server outcome. A Boolean ack or a mismatched
+      // run/version must NEVER make a predicted local move visible.
+      const confirmed = tacticsReconcileServerSession(before, confirmedWorld, ports);
+      viewport.updateFrame(confirmed.frame);
+      session = confirmed;
       return true;
     } catch (error) {
       if (valid(generation, signal)) {
