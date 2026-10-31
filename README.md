@@ -23,6 +23,11 @@ RPG táctico isométrico del universo **ShadowOps**. Su origen es el modo Tactic
 
 Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por comodidad. Ver [AGENTS.md](AGENTS.md) una vez incorporado.
 
+### Presentación isométrica portable
+
+- `src/render/tacticsPartyPresentation.js`: formación de los cuatro héroes, orientación de cámara y colores de selección.
+- `src/render/tacticsLighting.js`: selección determinista y limitada de antorchas según muros y tipo de sala. **Solo son parámetros de escena**, todavía no se ha migrado Three.js ni hay viewport ejecutable.
+
 ### Reglas portadas
 
 - `src/tacticsProfiles.js`: identidad y habilidades de las cuatro clases originales.
