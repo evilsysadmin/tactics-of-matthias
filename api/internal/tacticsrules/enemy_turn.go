@@ -149,7 +149,6 @@ func DecideEnemyTurn(
   return EnemyTurnIntent{},ErrInvalidEnemyTurn
  }
  occupants:=map[Cell]bool{}
- roster:=map[string]bool{}
  for _,member:=range board.Party{
   if member.HP==0{continue}
   pos,ok:=board.PartyPositions[member.ID]
