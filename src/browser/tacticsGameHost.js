@@ -43,14 +43,16 @@ export function createTacticsGameHost({
     if (disposed || status !== 'ready' || busy || !session || !viewport
       || !['move', 'attack'].includes(action?.kind)) return false;
     const before = session;
-    const result = tacticsApplySessionRequest(before, {
-      ...action, revision: before.revision,
-    }, ports);
-    if (!result) return false;
     busy = true;
     const generation = revision;
     const signal = pending.signal;
     try {
+      // Projection can fail if a world changed under us. Never leak an
+      // unhandled promise rejection from a WebGL pointer event.
+      const result = tacticsApplySessionRequest(before, {
+        ...action, revision: before.revision,
+      }, ports);
+      if (!result) return false;
       const ack = await commitTransition({
         previous: before,
         next: result.session,
