@@ -55,3 +55,7 @@
 ## Server-authoritative display
 - Browser `commitTransition` must return the full, validated server run with the next exact `worldVersion` and matching `runId`. A boolean 2xx/ACK does NOT validate game outcomes.
 - Never promote client-predicted damage, XP or enemy positions after a server write; rehydrate the confirmed world and rebuild the scene from it. Error/rebootstrap on drift.
+
+## Tactics API client configuration
+- `createTacticsRunApi` must receive an exactly pinned approved API origin, an existing owner-authorized run ID and a REAL access token exchange for audience `tactics`. The independent Identity issuer does not currently advertise this audience; do not invent it, reuse a Chronicles token or hardcode an unverified endpoint.
+- Bootstrap and action responses must be validated; no token storage, redirect following, exposed server error bodies, synthetic fallback world or client checkpoint state. Continue server-confirmed reconciliation after writes.

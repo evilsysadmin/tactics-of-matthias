@@ -124,3 +124,9 @@ La CI comprueba tests y `vite build` en cada PR. Este workflow de código fuente
 ### Respuesta de acciones: servidor como autoridad
 
 `tacticsReconcileServerSession(previous, confirmedWorld, ports)` exige el **mismo run ID**, la siguiente versión exacta del mundo remoto y estado activo; vuelve a hidratar desde el **resultado del servidor** y a proyectar la escena. El controlador `createTacticsGameHost` ya no considera `true` un ACK suficiente ni muestra como definitiva la predicción del cliente. Esto permite que combate, IA y resultados aleatorios decididos en backend se reflejen correctamente. Ante resultado inválido o render fallido se suspende la sesión hasta nuevo bootstrap; no escribe nada en guardados Chronicles.
+
+### HTTP cliente de runs Tactics (sin login habilitado)
+
+- `src/browser/tacticsRunApi.js` implementa GET bootstrap y POST acciones sobre la API Go de #17. Exige una **URL HTTPS de origen explícitamente aprobado**, un run ID y un proveedor real de bearer con audiencia `tactics`. No guarda tokens ni soporta cookies del juego, redirecciones, URLs con credenciales o HTTP no-local.
+- Envía solo `expectedWorldVersion` y las propiedades permitidas de la acción. Valida runId, origen remoto, estado activo, manifest del mapa y versión del resultado; el host de #18 usa **ese mundo devuelto por servidor** para pintar la escena. Los errores de red/autorización no incluyen ni token ni respuesta cruda.
+- Se puede conectar cuando SSO habilite de verdad la audiencia `tactics` y exista backend/almacén/rules del juego. **No está cableado a `main.js`**, porque Identity todavía no concede audiencias para Tactics ni hay despliegue API. No se debe usar un token de Chronicles ni fabricarlo en runtime.
