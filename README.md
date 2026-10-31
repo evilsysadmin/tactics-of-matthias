@@ -80,3 +80,9 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `createActorVisual` permite inyectar los modelos/sprites auténticos cuando su pipeline R2 esté listo. Los localizadores de actor no pretenden ser personajes definitivos; las geometrías/materiales creados internamente se liberan con `dispose()`, sin liberar assets compartidos del host.
 - El picking se restringe a marcadores de movimientos/ataques legales y selección de grupo; no concede permiso para ejecutar turnos ni acepta golpes sobre objetos externos a la escena.
 - **Falta el montaje WebGL en navegador, sus controles, auth, assets definitivos, puertos del mundo y staging**. Los tests de Node validan un scene graph Three.js real, no equivalen a smoke visual de Chromium.
+
+### Montaje real en canvas WebGL
+
+- `mountTacticsThreeViewport({ element, frame, onAction })` crea un `THREE.WebGLRenderer`, monta el canvas, adapta la cámara y el tamaño al contenedor, calcula picking por raycast y entrega solo intenciones legales. El host debe someterlas al motor autoritativo.
+- `updateFrame(nextFrame)` valida y crea la escena nueva **antes** de desmontar la anterior; frames inválidos no dejan el viewport en negro. `dispose()` limpia canvas, observadores, listeners y recursos Three.js.
+- Los tests verifican el ciclo de vida y acciones con un renderer/raycaster inyectados (sin un navegador). **Faltan smoke WebGL real, app shell, autenticación, sprites originales y runtime de mundo** antes de servir la página a usuarios.
