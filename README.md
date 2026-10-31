@@ -212,3 +212,9 @@ A fatal trap during an active encounter now clears **all three linked pieces**: 
 `tacticsrules.PlanPartyDeployment` ports the real `chroniclesPartyGridFootprint` selection: **BFS radius 6**, up to **24 walk-reachable candidates**, connected clusters, a role-weighted assignment for Matthias/rook/bishop/knight, and facing-relative positioning. It uses the server's current map, alive party, real enemy positions and visible blocking authored content only. It never spawns a member inside an enemy/object or across a wall; when a cramped map cannot fit the living team it **fails closed** rather than teleports. For narrow fallback clusters, living actors are all retained (fixes a legacy sparse-party slot omission). Exits `X` remain blocked, matching Tactics Go movement rules.
 
 The function is pure, uses no client-authored positions, and does not roll initiative, mutate saves or make a playable backend; the encounter-start reducer must combine it with `RollEngagedInitiative` and all remaining effects.
+
+### Uncommitted encounter start stage — Go
+
+`tacticsengine.StageEncounterStart` now composes, on the **server-run snapshot**, the exact private map revision check, `PlanPartyDeployment` connected formation, `RollEngagedInitiative` visible enemy subset and the saved `StateV1.engagedEnemyIds`/initiative/positions. It refuses missing authored enemy profiles, incomplete AGI, invalid catalog, malformed run and a map with no room for a legal formation. The first scheduled actor is recorded and its enemy-first status is explicit.
+
+**Safety boundary:** the generated `EncounterStage.Pending` retains the OLD worldVersion, so it cannot pass the HTTP engine's next-version check or reach Mongo CAS. A real resolver must still execute opening enemy AI, damage, content effects and all other turn consequences before creating the next-version run. Authored content inputs are backend-only; no public endpoints, example map or SSO were added.
