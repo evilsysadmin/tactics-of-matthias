@@ -110,7 +110,7 @@ func TestDeploymentRejectsCorruptOrUntrustedInputs(t *testing.T){
   "duplicate member":func(b *Snapshot){b.Party[1].ID="matthias"},
   "negative HP":func(b *Snapshot){b.Party[0].HP=-2},
   "dead all":func(b *Snapshot){for i:=range b.Party{b.Party[i].HP=0}},
-  "bad grid":func(b *Snapshot){b.Grid[2]="#...#..##"},
+  "bad grid":func(b *Snapshot){b.Grid[2]="#...#..###"},
   "enemy on anchor":func(b *Snapshot){b.Enemies=[]Enemy{{ID:"pawn",HP:2,Cell:b.Anchor}}},
   "stale footprint":func(b *Snapshot){b.PartyPositions=map[string]Cell{"rook":{X:1,Y:1}}},
  }{
