@@ -124,3 +124,8 @@
 - `PlanPartyDeployment` uses BFS through traversable map cells (not through walls/enemies), finds a connected role-aware cluster near the exploration anchor, avoids server-authored visible blockers, and returns only living canonical party IDs. Never let the client supply blockers or positions.
 - In narrow corridors do not omit a living member merely because the preferred 4-slot role cell is missing. If no connected legal deployment fits, reject rather than teleport across masonry or onto enemies/interactive objects.
 - Keep Go `X` exit blocking consistent with movement legality. A pure formation is not a full encounter or a saved checkpoint; combine with authoritative engagement roll, effects and CAS later.
+
+## Uncommitted authenticated encounter start
+- `StageEncounterStart` combines only server-owned private catalog/revision, living party/enemy positions, canonical connected formation and trusted authored enemy profiles/AGI. It persists the selected engaged subset in the PENDING world, never in a client-supplied action.
+- The initial actor may be an ENEMY. Do not advance `worldVersion` or issue an authenticated player checkpoint before that enemy's required action has been resolved by the full real Effects implementation.
+- No valid formation or no visible enemy means no combat start. Unknown/map-mismatched content fails closed; never replace it with a local test fixture.
