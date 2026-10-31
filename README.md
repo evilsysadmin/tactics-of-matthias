@@ -86,3 +86,9 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `mountTacticsThreeViewport({ element, frame, onAction })` crea un `THREE.WebGLRenderer`, monta el canvas, adapta la cámara y el tamaño al contenedor, calcula picking por raycast y entrega solo intenciones legales. El host debe someterlas al motor autoritativo.
 - `updateFrame(nextFrame)` valida y crea la escena nueva **antes** de desmontar la anterior; frames inválidos no dejan el viewport en negro. `dispose()` limpia canvas, observadores, listeners y recursos Three.js.
 - Los tests verifican el ciclo de vida y acciones con un renderer/raycaster inyectados (sin un navegador). **Faltan smoke WebGL real, app shell, autenticación, sprites originales y runtime de mundo** antes de servir la página a usuarios.
+
+### Host navegador — ciclo de sesión autenticada
+
+- `src/browser/tacticsGameHost.js` integra **únicamente** el ciclo de vida: recibe un loader de mundo **autenticado por el backend**, puertos del juego real, confirmación de checkpoint y un viewport WebGL. No provee ni finge esas integraciones.
+- Solo monta el canvas tras `tacticsCreateSession`. Cancela arranques obsoletos y desmonta escenas al reiniciar. Una acción legal no cambia la escena hasta recibir `commitTransition(...)=true`; bloquea dobles acciones y detiene el juego si falla el guardado o renderizado.
+- Testea todo con loaders/renders de prueba **solo en tests**. Todavía no hay cliente de SSO, API Tactics ni gestor de guardados independiente, por lo que no se debe publicar un acceso jugable.
