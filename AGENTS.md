@@ -100,3 +100,8 @@
 ## Terminal runs are not active worlds
 - Keep owner-scoped terminal GET records readable, but POST to a terminal run must fail before any engine effects or storage writes. Do not resurrect a defeated campaign.
 - Client `tacticsReadOnlyTerminal` must verify the run, next server version and terminal phase. Render a non-actionable read-only result, never a playable scene or a synthetic victory.
+
+## Enemy engagement visibility gate
+- `tacticsrules.EngagedEnemies` checks a server-sourced roster and authored engagement profile; it does not accept ranges, positions or enemy IDs from HTTP actions.
+- Keep **Bresenham with diagonal-corner blocking** for sight/detection distinct from straight/diagonal ranged attacks. Proximity without visibility never starts an encounter.
+- The result is a living engaged subset. Do not add it to a saved initiative round without correct party deployment and per-subset scheduler/AI handling; no fallback all-enemy turns or client-selected encounters.

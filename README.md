@@ -182,3 +182,9 @@ A run's `Map.Version` is matched with the private catalog revision **even when g
 ### Read-only terminal expeditions
 
 Server-authorized `GET /api/tactics/runs/{id}/bootstrap` now returns owner-scoped terminal runs as immutable history, while `POST /actions` still rejects them with 409 before any engine effect. The browser transport validates defeat/completion responses; `tacticsReadOnlyTerminal` verifies run identity, exact next version, phase, and fallen party. The host drops its actionable WebGL viewport and displays an explicit **read-only end result**, including on reload, without inventing a recovered party or restarting combat. No local save/SSO fallback is enabled.
+
+### Authoritative encounter visibility (Go)
+
+`api/internal/tacticsrules/encounter.go` now ports **Bresenham enemy sightline** and the **proximity/engagement decision** from Chronicles. Solid masonry and blocked diagonal corners prevent detection, including between non-cardinal/non-45° tiles. The roster is filtered to **living, visible, in-range enemies**, using only server-authored attack reach (1..16) and optional engage range (1..64). Range defaults to attack reach, matching the Chronicles contract. Missing/malformed authoring, dead parties, enemy turns and corrupted rosters fail closed.
+
+**Sight is not the same as attack.** Ranged attack geometry in `attack.go` remains independently constrained. This pure selector is NOT a complete encounter reducer: deployment, AGI+1d8 roll for the selected enemy subset, enemy AI, damage and persistence are still pending, and no runtime SSO/game map was enabled.
