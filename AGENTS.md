@@ -72,3 +72,7 @@
 ## Go attack target parity
 - `api/internal/tacticsrules/attack.go` returns attack *decisions*, never damage, RNG, loot, XP or a completed turn. Damage and first-contact initiative must be resolved by the future server engine from trusted authored profiles/state, never from the client.
 - Keep exact Chronicles geometries: adjacent Manhattan=1, orthogonal lines, diagonal squares, line ray, line-of-sight intermediate walls/living enemies, and explicit reach bonuses. A ranged exploration attempt is an initiative boundary, NOT a free attack.
+
+## Go initiative scheduler
+- `api/internal/tacticsrules/initiative.go` rolls server-owned AGI+1d8 and advances through living combatants. Never accept initiative rolls, ordering, actor ID or agility values from browser payloads. Tests may inject deterministic entropy, but production defaults to cryptographic entropy.
+- A scheduling decision does not apply enemy AI/damage/traps or mutate the save; do not wire incomplete `Engine.Apply` that skips these effects. Combat ending must clear tactical footprints and transient effects in the later real reducer.

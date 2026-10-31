@@ -148,3 +148,9 @@ La CI comprueba tests y `vite build` en cada PR. Este workflow de código fuente
 `api/internal/tacticsrules/attack.go` porta **la geometría de objetivos del Tactics original** (`tacticsAttackDistance` y `tacticsLineIsClear`): adyacente de Matthias, ortogonal de torre, diagonal de alfil y líneas de caballo, con alcance derivado exclusivamente de perfiles del servidor y modificadores validados. Verifica que el enemigo esté vivo, que el actor tenga la iniciativa y que no haya muro ni enemigo vivo intermedio. Las pruebas Go comparan las geometrías y casos del proyecto fuente y emplean la cripta real solo como fixture de test.
 
 **No inflige daño ni comienza combates por su cuenta.** Un ataque solicitado en exploración devuelve `RequiresInitiative`: la creación del encuentro y su primer turno deben suceder **antes** de cualquier daño, exactamente como en Chronicles. En combate devuelve la obligación de avanzar turno. No conectar un `Engine.Apply` sin portar el resto de la iniciativa, IA y efectos.
+
+### Planificador de iniciativa Go
+
+`api/internal/tacticsrules/initiative.go` incorpora **AGI + 1d8** con desempates fieles al planificador de Chronicles (puntuación, AGI, tirada, tipo e ID), además de seleccionar el siguiente actor, saltarse los caídos, pasar de ronda y terminar encuentros cuando no quedan enemigos o ha caído toda la compañía. La agilidad es aportada por el motor del servidor, y la fuente de azar es `crypto/rand` (inyectable solo para pruebas deterministas).
+
+Una orden corrupta, un enemigo vivo sin turno o un personaje repetido se rechaza en vez de conceder acciones extra. **No está conectado aún a `tacticsapi.Engine.Apply`**: falta resolver el efecto real de cada acción, IA enemiga, trampas, buffs y la persistencia del resultado. Las pruebas Go cubren orden, empates, wrap, enemigos muertos, derrota, victoria y corrupción.
