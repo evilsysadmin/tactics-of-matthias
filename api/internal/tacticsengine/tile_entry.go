@@ -19,6 +19,7 @@ var ErrInvalidContent = errors.New("server-authored Tactics content is unavailab
 
 type PrivateMapContent struct {
  MapID string
+ Revision int
  Grid []string
  Traps []tacticsrules.AuthoredTrap
 }
@@ -46,7 +47,8 @@ func StageMoveEntry(ctx context.Context,run tacticsapi.Run,
  if err!=nil || actual!=decision{return MoveStage{},tacticsapi.ErrIllegalAction}
  content,err:=catalog.LoadMapContent(ctx,run.MapID)
  if err!=nil{return MoveStage{},ErrInvalidContent}
- if content.MapID!=run.MapID || !reflect.DeepEqual(content.Grid,run.Map.Grid){
+ if content.MapID!=run.MapID || content.Revision!=run.Map.Version ||
+  !reflect.DeepEqual(content.Grid,run.Map.Grid){
   return MoveStage{},ErrInvalidContent
  }
  if err:=tacticsrules.ValidateAuthoredTraps(content.Grid,content.Traps);err!=nil{
