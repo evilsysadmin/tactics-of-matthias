@@ -86,3 +86,8 @@
 - Go `api/internal/tacticsrules/traps.go` implements a narrow but REAL original Tactics content effect: explicit authored one-time flags and damage to living party, with defeat. Missing flags must not satisfy an authored `equals:false` condition.
 - Reject unknown trap effects and invalid placements rather than silently omitting content. The backend may ONLY call this with its own authored map manifest plus persisted flags/party; never from a browser-supplied trap definition or a fixture.
 - Remaining traps and all other content effect types must be resolved by the later real `Effects` implementation. Do not expose this submodule as a complete game engine.
+
+## Private authored tile content gate
+- `StageMoveEntry` must use only previously validated `Run.State`, recheck the actual move, then retrieve authored content from a **server-private** ContentCatalog. Never serialize trap definitions into `Run.Map`/bootstrap responses or derive them from client requests.
+- Do not commit `MoveStage.Pending`: it intentionally retains the previous worldVersion and must pass full encounter, enemy AI and scheduler resolution before a valid next version can be persisted.
+- Terminal traps may set a validated defeated state; stale/forged turns, mismatched catalog geometry and unknown authored effects must fail closed.
