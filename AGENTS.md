@@ -59,3 +59,7 @@
 ## Tactics API client configuration
 - `createTacticsRunApi` must receive an exactly pinned approved API origin, an existing owner-authorized run ID and a REAL access token exchange for audience `tactics`. The independent Identity issuer does not currently advertise this audience; do not invent it, reuse a Chronicles token or hardcode an unverified endpoint.
 - Bootstrap and action responses must be validated; no token storage, redirect following, exposed server error bodies, synthetic fallback world or client checkpoint state. Continue server-confirmed reconciliation after writes.
+
+## Mongo storage
+- `api/internal/tacticsmongo` must always bind owner + run ID + expected worldVersion + active status for atomic CAS. No upserts, terminal resurrection or writes to any Chronicles/Chess/Identity database.
+- Mongo CI integration must run only on disposable localhost `shadowops_tactics_ci`; require explicit per-environment connection and dedicated credentials in production. This store does not confer game or identity authority.
