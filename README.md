@@ -2,7 +2,7 @@
 
 RPG táctico isométrico del universo **ShadowOps**. Su origen es el modo Tactics de [Chronicles of Matthias](https://github.com/evilsysadmin/chronicles-of-matthias).
 
-> **Estado: migración en preparación.** El primer módulo portable de clases de Tactics está en `src/tacticsProfiles.js`, con `npm test` y CI. Este repositorio todavía no contiene un juego ejecutable. La versión jugable de Tactics sigue estando en Chronicles mientras trasladamos sus módulos con pruebas y preservamos los guardados existentes.
+> **Estado: migración en preparación.** Los primeros módulos portables de clases y de geometría de objetivos están en `src/`, con `npm test` y CI. Este repositorio todavía no contiene un juego ejecutable. La versión jugable de Tactics sigue estando en Chronicles mientras trasladamos sus módulos con pruebas y preservamos los guardados existentes.
 
 ## Contratos de independencia
 
@@ -22,3 +22,8 @@ RPG táctico isométrico del universo **ShadowOps**. Su origen es el modo Tactic
 5. Retirar el modo Tactics de Chronicles únicamente tras comprobar la paridad del nuevo juego y ofrecer una transición segura.
 
 Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por comodidad. Ver [AGENTS.md](AGENTS.md) una vez incorporado.
+
+### Reglas portadas
+
+- `src/tacticsProfiles.js`: identidad y habilidades de las cuatro clases originales.
+- `src/tacticsTargetGeometry.js`: distancias por patrón y obstrucciones de línea de visión. El runtime inyectará los tiles y las posiciones de enemigos; no se enlaza todavía con el mundo ni los saves de Chronicles.
