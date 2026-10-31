@@ -43,3 +43,8 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 
 - `src/adapters/tacticsActionIntent.js` solo transforma clics de **mover/atacar** en intenciones cuando el frame contiene exactamente esa acción legal. No fabrica capacidades ni ejecuta turnos.
 - El motor táctico **debe volver a validar** cada intención al aplicar cambios; un frame puede quedar obsoleto entre render y clic. Esperar al runtime real para habilitar pasar, usar o habilidades con su iniciativa.
+
+### Frontera real de turnos
+
+- `src/tacticsTurnResolution.js`: transición de exploración a combate, avance del cursor de iniciativa, ataque forzado y cambio de mapa, **extraída de la lógica jugable de Chronicles**.
+- Recibe puertos del motor real (`activeEnemies`, `combatActive`, `advanceExplorationEnemies`, `startInitiativeCombat`, `advanceCombatInitiative`, `prepareExplorationSpawn`). No crea enemigos o campañas de sustitución. El futuro runtime deberá conectar implementaciones reales con pruebas de paridad, igual que el adaptador que todavía vive en Chronicles.
