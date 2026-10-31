@@ -194,3 +194,9 @@ Server-authorized `GET /api/tactics/runs/{id}/bootstrap` now returns owner-scope
 `tacticsrules.RollEngagedInitiative` now composes the **real enemy visibility selector** with existing **AGI+1d8** and rolls only the enemies currently detecting the party, preserving Chronicles' engaged-subset semantics. A distant monster does not get initiative simply by existing in the same map. `AdvanceEngagedTurn` validates the persisted selected roster, rejects phantom/missing actor slots, skips dead enemies and ends combat when the final **engaged** enemy dies even if distant enemies remain alive outside that encounter.
 
 These are **pure server decisions** and do not persist a round, deploy the party or execute AI/damage. The eventual world reducer must persist the selected engaged enemy IDs, deploy the party, and safely use this scheduler; its HTTP API does not accept client-provided engagement rosters.
+
+### Persisted engaged-enemy roster is mandatory for combat saves
+
+`tacticsengine.StateV1` now persists `engagedEnemyIds` for combat only. `DecodeState` validates this private server-authored subset against the SAME `tacticsrules.AdvanceEngagedTurn` used for actual scheduler decisions: exact participating enemy slots, all living party actors, no ghost/duplicate/missing actors, valid footprint and non-terminal combat. **Living enemies elsewhere on the map are not required in initiative.** Exploratory or defeated runs must clear initiative, footprint and the engaged roster. The server still never accepts these values from client actions.
+
+This corrects an incompatibility left by #30; it does not yet construct the correct party deployment, start an encounter, perform real AI/damage or expose a deployable standalone service.

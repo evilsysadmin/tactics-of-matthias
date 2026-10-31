@@ -42,6 +42,9 @@ type StateV1 struct{
  Party []tacticsrules.PartyMember `json:"party"`
  PartyPositions map[string]tacticsrules.Cell `json:"partyPositions,omitempty"`
  Enemies []tacticsrules.Enemy `json:"enemies"`
+ // This server-persisted encounter subset is not supplied by HTTP actions.
+ // Distant, non-engaged living enemies must never receive a combat turn.
+ EngagedEnemyIDs []string `json:"engagedEnemyIds,omitempty"`
  Initiative *Initiative `json:"initiative,omitempty"`
 }
 
@@ -148,7 +151,8 @@ func DecodeState(run tacticsapi.Run)(StateV1,tacticsrules.Snapshot,error){
  }
  if run.Status=="active" && aliveParty==0{return zero,tacticsrules.Snapshot{},ErrCorruptRun}
  if run.Status=="defeated" && (aliveParty!=0||state.Initiative!=nil||
-  len(state.PartyPositions)!=0||state.TurnPhase=="enemy"){
+  len(state.PartyPositions)!=0||len(state.EngagedEnemyIDs)!=0||
+  state.TurnPhase=="enemy"){
   return zero,tacticsrules.Snapshot{},ErrCorruptRun
  }
  for _,enemy:=range state.Enemies{
@@ -178,14 +182,14 @@ func DecodeState(run tacticsapi.Run)(StateV1,tacticsrules.Snapshot,error){
     !unique[key] || seen[key]{return zero,tacticsrules.Snapshot{},ErrCorruptRun}
    seen[key]=true
   }
-  for _,enemy:=range state.Enemies{
-   if enemy.HP>0 && !seen["enemy:"+enemy.ID]{
-    return zero,tacticsrules.Snapshot{},ErrCorruptRun
-   }
-  }
+  // Only the persisted ENGAGED subset must occur in initiative, never
+  // every live enemy on the map. Full roster/slot parity is verified below
+  // by the same scheduler that advances real encounters.
   order=append([]tacticsrules.Actor(nil),state.Initiative.Order...)
   cursor=state.Initiative.Cursor
- }else if state.Initiative!=nil{
+ }else if state.Initiative!=nil || len(state.EngagedEnemyIDs)!=0 ||
+  len(state.PartyPositions)!=0 {
+  // Terminal/exploration saves cannot retain a phantom combat roster.
   return zero,tacticsrules.Snapshot{},ErrCorruptRun
  }
  board:=tacticsrules.Snapshot{
@@ -196,6 +200,25 @@ func DecodeState(run tacticsapi.Run)(StateV1,tacticsrules.Snapshot,error){
   PartyPositions:state.PartyPositions,
   Enemies:append([]tacticsrules.Enemy(nil),state.Enemies...),
   Initiative:order,InitiativeCursor:cursor,
+ }
+ if state.Phase=="combat" {
+  // Match the server's real engaged-turn contract. The scheduler rejects
+  // duplicate/unknown IDs, absent living party/enemy slots, enemy actors
+  // outside the engagement and bad turn boundaries. No automatic repair.
+  step,err:=tacticsrules.AdvanceEngagedTurn(
+   board,state.Initiative.Round,state.EngagedEnemyIDs)
+  if err!=nil || step.Ended {
+   // Finishing the last engaged enemy must collapse combat in the SAME
+   // authoritative transition, not persist a stuck empty encounter.
+   return zero,tacticsrules.Snapshot{},ErrCorruptRun
+  }
+  // Extra party-position keys must belong to a real member. The movement
+  // rules already checked live-party positions for bounds/collisions.
+  for id:=range state.PartyPositions {
+   if !unique["party:"+id]{
+    return zero,tacticsrules.Snapshot{},ErrCorruptRun
+   }
+  }
  }
  return state,board,nil
 }

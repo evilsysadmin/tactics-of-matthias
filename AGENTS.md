@@ -110,3 +110,8 @@
 - Use `RollEngagedInitiative` for a server-authorized encounter, NEVER roll all living map enemies by default. `AdvanceEngagedTurn` must receive the selected server-persisted enemy IDs and an initiative order with exactly those enemies plus living party actors.
 - A distant unengaged enemy is not owed a turn and must not keep an encounter alive after the engaged opponents are defeated. Never accept engagedEnemyIDs from the browser or quietly drop a selected enemy's slot.
 - These APIs are pure rules until the real combat reducer safely persists initiative + party footprint and resolves AI/effects; do not connect them as a partial gameplay fallback.
+
+## Persisted engagement consistency
+- `StateV1.engagedEnemyIds` is mandatory for combat, absent outside combat, and authored/updated only by the authoritative server reducer. Validate every restored combat against `tacticsrules.AdvanceEngagedTurn` (same semantics as live scheduling), not the entire world's living enemy roster.
+- Saved combat must have all participating enemy slots and all living party slots, valid/non-phantom formation coordinates, and at least one living engaged enemy. Clear engagement IDs, initiative and tactical footprint together on returning to exploration or defeat.
+- Never expose any API accepting client-supplied initiative/engagement IDs. This schema gate is NOT an encounter deployer or full gameplay engine.
