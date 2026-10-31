@@ -15,17 +15,17 @@ type Cell struct {
  Y int `json:"y"`
 }
 type PartyMember struct {
- ID string
- HP int
+ ID string `json:"id"`
+ HP int `json:"hp"`
 }
 type Enemy struct {
- ID string
- HP int
- Cell Cell
+ ID string `json:"id"`
+ HP int `json:"hp"`
+ Cell Cell `json:"cell"`
 }
 type Actor struct {
- Kind string
- ID string
+ Kind string `json:"kind"`
+ ID string `json:"id"`
 }
 type Snapshot struct {
  Grid []string
