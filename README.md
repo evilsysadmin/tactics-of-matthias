@@ -67,3 +67,9 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - Reproduce el orden, geometría y reglas de contorno del plan isométrico existente de Chronicles; lo verificamos contra el grid original de la Cripta de las Ocho Casillas, conservado **solo dentro de las pruebas**.
 - `tacticsSceneModelFromRemoteWorld` combina esa geometría con los personajes, enemigos y acciones legales **ya proyectados por el host real**; no atribuye HP, posiciones, IA, interacción o estados inventados. La sesión headless puede consumir el resultado.
 - No sustituye aún la instalación de mapas, hidratación, IA, renderer 3D o SSO. Un cambio de región exige recibir el mapa correspondiente del backend, no reutilizar un grid antiguo.
+
+### Coordenadas 3D derivadas del mundo real
+
+- `src/render/tacticsSpatialRenderPlan.js` transforma las casillas validadas de un frame (obtenido del mapa remoto actual) en coordenadas isométricas 3D, base del tablero, volúmenes de muro, puntos de antorcha, posiciones de actores y marcadores legales.
+- Conserva la escala del renderer original (`2.45` unidades/celda) y la centralización geométrica; el módulo sigue siendo puro e independiente de Three.js para facilitar pruebas y comparación de paridad.
+- **Aún no pinta meshes ni anima sprites**. El siguiente paso será montar un renderizador que consuma este plan y disponga los assets y personajes reales, conectado a una sesión autenticada.
