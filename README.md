@@ -54,3 +54,9 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `src/tacticsActionDispatch.js` es una copia exacta del módulo que el Tactics integrado en Chronicles usa para ejecutar **movimiento y ataque legales**, a través de puertos del motor.
 - `src/adapters/tacticsFrameActionPipeline.js` compone la proyección de escena, los clics legales y la ejecución mediante puertos de mundo/turnos. Vuelve a validar actor, mapa, movimientos y objetivos en el estado **actual**, por lo que un frame obsoleto no tiene autoridad sobre el motor.
 - El test de integración prueba de extremo a extremo **el contrato entre estos módulos** usando dobles de puertos. Es una prueba de arquitectura, no significa que el juego standalone ya tenga mapas/IA/renderizador reales.
+
+### Sesión headless (sin juego standalone todavía)
+
+- `src/tacticsSession.js` exige que el host entregue un mundo remoto **ya validado** y puertos auténticos para hidratar estado, proyectar escena y ejecutar acciones. Rechaza run local, terminal, versiones inválidas y mapas divergentes; la marca remota **no sustituye autenticación SSO**.
+- Una acción debe incluir la revisión del frame actual; se rechazan clics obsoletos y se reconstruye el frame desde el estado actualizado solo después de resolver con las reglas. El host sigue siendo responsable de persistir el checkpoint/progresión y de validarlo contra el backend.
+- Las pruebas demuestran el contrato usando dobles **solo en tests**. Todavía no existe implementación standalone de los puertos del mundo, renderizador visual ni bootstrap autenticado.
