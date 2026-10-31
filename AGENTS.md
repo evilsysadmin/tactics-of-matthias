@@ -81,3 +81,8 @@
 - `api/internal/tacticsengine` must decode only authenticated run.State and always rebuild terrain from the server-stored Run.Map, not an HTTP-provided grid or client positions. State v1 is strict and versioned.
 - The Engine adapter must call legality checks before any game effects and reject fake next runs. Real `Effects` owns ALL damage, AI, traps, combat start/finish, progression and turn resolution; never inject test doubles in a production process.
 - Keep end-to-end HTTP→engine→CAS tests. A green adapter test does not imply a complete game engine/Identity service or playable standalone.
+
+## Authored trap effects
+- Go `api/internal/tacticsrules/traps.go` implements a narrow but REAL original Tactics content effect: explicit authored one-time flags and damage to living party, with defeat. Missing flags must not satisfy an authored `equals:false` condition.
+- Reject unknown trap effects and invalid placements rather than silently omitting content. The backend may ONLY call this with its own authored map manifest plus persisted flags/party; never from a browser-supplied trap definition or a fixture.
+- Remaining traps and all other content effect types must be resolved by the later real `Effects` implementation. Do not expose this submodule as a complete game engine.
