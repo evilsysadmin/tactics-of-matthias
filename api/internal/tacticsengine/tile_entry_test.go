@@ -194,3 +194,42 @@ func TestStageRequiresExactMapRevisionEvenIfGridMatches(t *testing.T){
  if _,err:=StageMoveEntry(context.Background(),run,move,&catalog{world:content});
   err!=nil{t.Fatalf("correct map revision rejected: %v",err)}
 }
+
+func TestFatalCombatTrapClearsEngagementAsWellAsInitiative(t *testing.T){
+ run:=encounterRun()
+ var state StateV1
+ if err:=json.Unmarshal(run.State,&state);err!=nil{t.Fatal(err)}
+ // The only living hero is Matthias. A fatal spike after a legal
+ // initiative move must not leave orphan combat IDs in the defeated run.
+ for i:=range state.Party{
+  if state.Party[i].ID=="rook"{state.Party[i].HP=0}
+ }
+ run.State,_=json.Marshal(state)
+ _,board,err:=DecodeState(run);if err!=nil{t.Fatal(err)}
+ dec,err:=tacticsrules.DecideMove(board,"matthias",tacticsrules.Cell{X:1,Y:4})
+ if err!=nil{t.Fatal(err)}
+ hit:=tacticsrules.AuthoredTrap{
+  ID:"fatal-spikes",Cell:tacticsrules.Cell{X:1,Y:4},
+  Effects:[]tacticsrules.TrapEffect{{Type:"damage-party",Amount:asInt(20)}},
+ }
+ content:=&catalog{world:PrivateMapContent{
+  MapID:"crypt",Revision:run.Map.Version,Grid:crypt,
+  Traps:[]tacticsrules.AuthoredTrap{hit},
+ }}
+ stage,err:=StageMoveEntry(context.Background(),run,dec,content)
+ if err!=nil{t.Fatalf("valid lethal combat trap rejected: %v",err)}
+ ended,_,err:=DecodeState(stage.Pending)
+ if err!=nil||stage.Pending.Status!="defeated"||ended.Phase!="defeated"||
+  ended.Initiative!=nil||len(ended.EngagedEnemyIDs)!=0||
+  len(ended.PartyPositions)!=0||ended.Party[0].HP!=0 {
+  t.Fatalf("combat ghosts survived fatal trap: %+v %v",ended,err)
+ }
+ if stage.Pending.WorldVersion!=run.WorldVersion{
+  t.Fatal("stage should remain uncommitted")
+ }
+ next:=stage.Pending
+ next.WorldVersion++
+ if err:=validNext(run,next);err!=nil{
+  t.Fatalf("complete defeated outcome should be valid after full resolution: %v",err)
+ }
+}

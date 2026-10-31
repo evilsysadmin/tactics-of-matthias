@@ -77,6 +77,7 @@ func StageMoveEntry(ctx context.Context,run tacticsapi.Run,
  if applied.State.Phase=="defeated"{
   next.Phase="defeated"
   next.Initiative=nil
+  next.EngagedEnemyIDs=nil
   next.PartyPositions=nil
   next.TurnPhase="party"
   pending.Status="defeated"

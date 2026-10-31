@@ -11,6 +11,7 @@ import (
  "errors"
  "fmt"
  "io"
+ "reflect"
 
  "github.com/evilsysadmin/tactics-of-matthias/api/internal/tacticsapi"
  "github.com/evilsysadmin/tactics-of-matthias/api/internal/tacticsrules"
@@ -225,7 +226,13 @@ func DecodeState(run tacticsapi.Run)(StateV1,tacticsrules.Snapshot,error){
 func validNext(before,next tacticsapi.Run)error{
  if next.ID!=before.ID || next.Owner!=before.Owner ||
   next.WorldVersion!=before.WorldVersion+1 || next.MapID=="" ||
-  next.Map.ID!=next.MapID{return ErrInvalidOutcome}
+  next.Map.ID!=next.MapID || next.MapID!=before.MapID ||
+  !reflect.DeepEqual(next.Map,before.Map) {
+  // Neither an ordinary move nor an attack is an authorized map migration.
+  // Changes to grid, title or authored revision need their own explicit
+  // transition handler. Reject even a well-formed replacement terrain.
+  return ErrInvalidOutcome
+ }
  if next.Status!="active"&&next.Status!="defeated"{
   // "completed" needs its own authored reward/transition contract.
   return ErrInvalidOutcome
