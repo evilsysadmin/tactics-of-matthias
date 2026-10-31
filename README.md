@@ -136,3 +136,9 @@ La CI comprueba tests y `vite build` en cada PR. Este workflow de código fuente
 - Read queries bind both immutable run ID and authenticated owner; updates match **ID + owner + expected worldVersion + active status** in one atomic MongoDB UpdateOne, with majority write concern, no upsert and no terminal-run resurrection. JSON engine snapshots remain opaque and unmodified by BSON mapping.
 - New integration checks run against a real ephemeral Mongo container to verify isolation, replay rejection, terminal locks and 20 competing actions across two store handles; no production secrets or connections are configured.
 - This store does not create runs or implement tokens, initiative or the game engine. Until SSO and an authoritative game server are wired, **no standalone run is playable/deployed**.
+
+### Decisiones de movimiento del motor Go (paridad de Chronicles)
+
+`api/internal/tacticsrules/movement.go` porta a un módulo **Go puro y comprobable** la legalidad de desplazamiento que aplica el Tactics integrado en Chronicles: direcciones N/E/S/O, muro `#` y salida `X` bloqueados, enemigos vivos que ocupan casillas, posición individual y otras unidades de la compañía que bloquean en combate, actor de iniciativa correcto, y rechazo de movimiento de jugadores caídos, turno enemigo y estados terminales. La exploración **no consume turno**; una acción de combate sí debe consumir uno.
+
+`DecideMove` devuelve una decisión validada y el indicador de turno debido, **pero no aplica traps, cambios de mapa, pasos de enemigos o iniciativa**. Esas responsabilidades siguen pendientes y necesitan un motor/ports del servidor antes de conectar `tacticsapi.Engine.Apply`. Las pruebas de paridad usan solo una copia del grid canónico de la Cripta de las Ocho Casillas en `*_test.go`; no hay mundos falsos en producción.
