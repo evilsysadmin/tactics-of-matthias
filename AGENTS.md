@@ -33,3 +33,7 @@
 - `src/render/tacticsThreeScene.js` owns only the resources it creates. Actor sprite/model factory owns its own shared geometry/material/texture lifecycle; do not dispose borrowed assets.
 - Keep picking restricted to known legal markers and let the authoritative rule engine revalidate every intent. Do not invent a fallback playable map, browser auth token, or deploy to prod.
 - Node tests of Three scene graphs are not a WebGL/Chromium visual smoke; build a browser host and separately verify its rendering before claiming playable Tactics.
+
+## Browser viewport boundary
+- Never mount `mountTacticsThreeViewport` before a valid current scene frame from an authenticated, backend-validated session. Browser host handles auth, persistent actions, asset lifecycle and error fallback.
+- WebGL context failures must surface to the UI, not trigger local world creation. Confirm real browser/Chromium rendering before marking standalone playable.
