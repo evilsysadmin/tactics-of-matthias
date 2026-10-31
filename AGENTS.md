@@ -115,3 +115,7 @@
 - `StateV1.engagedEnemyIds` is mandatory for combat, absent outside combat, and authored/updated only by the authoritative server reducer. Validate every restored combat against `tacticsrules.AdvanceEngagedTurn` (same semantics as live scheduling), not the entire world's living enemy roster.
 - Saved combat must have all participating enemy slots and all living party slots, valid/non-phantom formation coordinates, and at least one living engaged enemy. Clear engagement IDs, initiative and tactical footprint together on returning to exploration or defeat.
 - Never expose any API accepting client-supplied initiative/engagement IDs. This schema gate is NOT an encounter deployer or full gameplay engine.
+
+## Combat terminal cleanup and authored map integrity
+- Lethal trap transitions must clear `engagedEnemyIds` alongside `initiative` and `partyPositions`, including when a non-engaged living enemy remains on the map.
+- A normal `Engine.Apply` movement or attack must not rewrite `Run.Map` or switch `MapID`. A map migration requires an explicit server-authored, separately validated transition in a later PR. Never treat a well-formed replacement grid as implicitly authorized.

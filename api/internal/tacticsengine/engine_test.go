@@ -176,3 +176,31 @@ func TestHTTPToStoredRunToLegalityToEffectsToCAS(t *testing.T){
   t.Fatalf("illegal movement wrote checkpoint: %d",invalid.Code)
  }
 }
+
+func TestOrdinaryActionsCannotReplaceAuthoredMapOrRevision(t *testing.T){
+ original:=savedRun()
+ for _,change:=range []struct{
+  name string
+  alter func(*tacticsapi.Run)
+ }{
+  {"map geometry",func(r *tacticsapi.Run){
+   r.Map.Grid=append([]string(nil),r.Map.Grid...)
+   r.Map.Grid[1]="#....##"
+  }},
+  {"map revision",func(r *tacticsapi.Run){r.Map.Version=5}},
+  {"map title",func(r *tacticsapi.Run){r.Map.Title="Unauthorized new campaign"}},
+  {"map identifier",func(r *tacticsapi.Run){
+   r.MapID="new-map";r.Map.ID="new-map"
+  }},
+ }{
+  t.Run(change.name,func(t *testing.T){
+   next:=original
+   next.WorldVersion++
+   next.State=json.RawMessage(`{"version":1,"mapId":"crypt","x":1,"y":4,"phase":"explore","turnPhase":"party","party":[{"id":"matthias","hp":7}],"enemies":[]}`)
+   change.alter(&next)
+   if err:=validNext(original,next);!errors.Is(err,ErrInvalidOutcome){
+    t.Fatalf("regular action changed map without authoring: %v",err)
+   }
+  })
+ }
+}

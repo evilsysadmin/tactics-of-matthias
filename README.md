@@ -200,3 +200,9 @@ These are **pure server decisions** and do not persist a round, deploy the party
 `tacticsengine.StateV1` now persists `engagedEnemyIds` for combat only. `DecodeState` validates this private server-authored subset against the SAME `tacticsrules.AdvanceEngagedTurn` used for actual scheduler decisions: exact participating enemy slots, all living party actors, no ghost/duplicate/missing actors, valid footprint and non-terminal combat. **Living enemies elsewhere on the map are not required in initiative.** Exploratory or defeated runs must clear initiative, footprint and the engaged roster. The server still never accepts these values from client actions.
 
 This corrects an incompatibility left by #30; it does not yet construct the correct party deployment, start an encounter, perform real AI/damage or expose a deployable standalone service.
+
+### Terminal trap and map integrity hardening
+
+A fatal trap during an active encounter now clears **all three linked pieces**: `initiative`, `partyPositions` and `engagedEnemyIds`, so the defeated run validates as terminal rather than leaving phantom turns. Tests exercise the live combat-to-defeat stage with a distant enemy still alive.
+
+`validNext` also forbids changing **the current map's ID, revision, grid or title** through a normal movement/attack checkpoint, even when the replacement is structurally valid. Future authored map transitions must pass an explicit separate contract; they are not implicitly granted to arbitrary effects. No Tactics API or Chronicles production behavior is deployed.
