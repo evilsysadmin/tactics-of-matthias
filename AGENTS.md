@@ -76,3 +76,8 @@
 ## Go initiative scheduler
 - `api/internal/tacticsrules/initiative.go` rolls server-owned AGI+1d8 and advances through living combatants. Never accept initiative rolls, ordering, actor ID or agility values from browser payloads. Tests may inject deterministic entropy, but production defaults to cryptographic entropy.
 - A scheduling decision does not apply enemy AI/damage/traps or mutate the save; do not wire incomplete `Engine.Apply` that skips these effects. Combat ending must clear tactical footprints and transient effects in the later real reducer.
+
+## Server-owned snapshot and action boundary
+- `api/internal/tacticsengine` must decode only authenticated run.State and always rebuild terrain from the server-stored Run.Map, not an HTTP-provided grid or client positions. State v1 is strict and versioned.
+- The Engine adapter must call legality checks before any game effects and reject fake next runs. Real `Effects` owns ALL damage, AI, traps, combat start/finish, progression and turn resolution; never inject test doubles in a production process.
+- Keep end-to-end HTTP→engine→CAS tests. A green adapter test does not imply a complete game engine/Identity service or playable standalone.
