@@ -8,17 +8,20 @@ const WORLD = {
   worldVersion: 3, currentMapId: 'room',
   map: { id: 'room', title: 'Server room', grid: ['####', '#..#', '####'] },
 };
-function setup({ loader = async () => WORLD, commit = async () => true, renderFailure = false } = {}) {
+function setup({ loader = async () => WORLD, commit = async () => true, renderFailure = false, projectionFailure = false } = {}) {
   const views = [];
   const statuses = [];
   const ports = {
     hydrateState: world => ({ mapId: world.currentMapId, x: 1, y: 1, phase: 'explore' }),
-    projectScene: state => tacticsSceneModelFromRemoteWorld(WORLD, state, {
+    projectScene: state => {
+      if (projectionFailure && state.x === 2) throw new Error('invalid projected scene');
+      return tacticsSceneModelFromRemoteWorld(WORLD, state, {
       selectedMemberId: 'rook', focusCell: { x: state.x, y: state.y },
       party: [{ id: 'rook', visible: true, hpRatio: 1, cell: { x: state.x, y: state.y } }],
       enemies: [], interaction: { mode: 'move',
         legalMoves: state.x === 1 ? [{ x: 2, y: 1 }] : [], legalTargets: [] },
-    }),
+      });
+    },
     actionPorts: {
       partyCanAct: () => true, currentActor: () => null,
       memberPosition: state => ({ x: state.x, y: state.y }),
@@ -131,5 +134,19 @@ test('simultaneous clicks cannot commit the same turn twice', async () => {
   done(true);
   assert.equal(await first, true);
   assert.equal(h.host.session.revision, 1);
+  h.host.dispose();
+});
+
+test('projection failure during input is handled without commit or unhandled pointer rejection', async () => {
+  let committed = false;
+  const h = setup({ projectionFailure: true, commit: async () => {
+    committed = true;
+    return true;
+  } });
+  await h.host.start();
+  assert.equal(await h.host.dispatchAction({ kind: 'move', x: 2, y: 1 }), false);
+  assert.equal(committed, false);
+  assert.equal(h.host.status, 'error');
+  assert.equal(h.host.session.revision, 0);
   h.host.dispose();
 });
