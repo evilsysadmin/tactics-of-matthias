@@ -36,6 +36,9 @@ type StateV1 struct{
  Y int `json:"y"`
  Phase string `json:"phase"`
  TurnPhase string `json:"turnPhase"`
+ Turns int `json:"turns,omitempty"`
+ Direction int `json:"direction,omitempty"`
+ Flags map[string]bool `json:"flags,omitempty"`
  Party []tacticsrules.PartyMember `json:"party"`
  PartyPositions map[string]tacticsrules.Cell `json:"partyPositions,omitempty"`
  Enemies []tacticsrules.Enemy `json:"enemies"`
@@ -106,8 +109,22 @@ func DecodeState(run tacticsapi.Run)(StateV1,tacticsrules.Snapshot,error){
   !inside(run.Map.Grid,tacticsrules.Cell{X:state.X,Y:state.Y}){
   return zero,tacticsrules.Snapshot{},ErrCorruptRun
  }
- if run.Status!="active" || (state.Phase!="explore" && state.Phase!="combat"){
+ if !((run.Status=="active"&&(state.Phase=="explore"||state.Phase=="combat")) ||
+  (run.Status=="defeated"&&state.Phase=="defeated")) {
   return zero,tacticsrules.Snapshot{},ErrCorruptRun
+ }
+ if state.Turns<0 || state.Direction<0 || state.Direction>3 || len(state.Flags)>256{
+  return zero,tacticsrules.Snapshot{},ErrCorruptRun
+ }
+ for key:=range state.Flags {
+  if len(key)<1||len(key)>64 {
+   return zero,tacticsrules.Snapshot{},ErrCorruptRun
+  }
+  for _,c:=range key{
+   if !(c>='a'&&c<='z'||c>='A'&&c<='Z'||c>='0'&&c<='9'||c=='_'||c=='-'){
+    return zero,tacticsrules.Snapshot{},ErrCorruptRun
+   }
+  }
  }
  if state.TurnPhase!="" && state.TurnPhase!="party" && state.TurnPhase!="enemy"{
   return zero,tacticsrules.Snapshot{},ErrCorruptRun
@@ -129,7 +146,11 @@ func DecodeState(run tacticsapi.Run)(StateV1,tacticsrules.Snapshot,error){
    occupied[cell]=true
   }
  }
- if aliveParty==0{return zero,tacticsrules.Snapshot{},ErrCorruptRun}
+ if run.Status=="active" && aliveParty==0{return zero,tacticsrules.Snapshot{},ErrCorruptRun}
+ if run.Status=="defeated" && (aliveParty!=0||state.Initiative!=nil||
+  len(state.PartyPositions)!=0||state.TurnPhase=="enemy"){
+  return zero,tacticsrules.Snapshot{},ErrCorruptRun
+ }
  for _,enemy:=range state.Enemies{
   if enemy.ID=="" || enemy.HP<0 || unique["enemy:"+enemy.ID]{
    return zero,tacticsrules.Snapshot{},ErrCorruptRun
@@ -182,9 +203,8 @@ func validNext(before,next tacticsapi.Run)error{
  if next.ID!=before.ID || next.Owner!=before.Owner ||
   next.WorldVersion!=before.WorldVersion+1 || next.MapID=="" ||
   next.Map.ID!=next.MapID{return ErrInvalidOutcome}
- if next.Status!="active"{
-  // Terminal transitions need their own fully validated reducer/contract;
-  // this first slice deliberately cannot fabricate a completed campaign.
+ if next.Status!="active"&&next.Status!="defeated"{
+  // "completed" needs its own authored reward/transition contract.
   return ErrInvalidOutcome
  }
  if _,_,err:=DecodeState(next);err!=nil{return ErrInvalidOutcome}
