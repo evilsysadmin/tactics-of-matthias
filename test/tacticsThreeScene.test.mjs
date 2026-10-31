@@ -48,7 +48,7 @@ test('constructs native Three scene graph, real instanced crypt geometry and cam
   const matrix = new THREE.Matrix4();
   floor.getMatrixAt(0, matrix);
   const position = new THREE.Vector3().setFromMatrixPosition(matrix);
-  assert.equal(position.y, -0.095);
+  assert.ok(Math.abs(position.y + 0.095) < 1e-6);
   assert.ok(rendered.scene.getObjectByName('tactics-party-matthias'));
   assert.equal(rendered.scene.getObjectByName('tactics-party-rook'), undefined);
   assert.ok(rendered.scene.getObjectByName('tactics-enemy-corrupted-pawn'));
