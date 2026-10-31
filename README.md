@@ -60,3 +60,10 @@ Trabajo pequeño, **PR a PR**, sin despliegues ni borrados destructivos por como
 - `src/tacticsSession.js` exige que el host entregue un mundo remoto **ya validado** y puertos auténticos para hidratar estado, proyectar escena y ejecutar acciones. Rechaza run local, terminal, versiones inválidas y mapas divergentes; la marca remota **no sustituye autenticación SSO**.
 - Una acción debe incluir la revisión del frame actual; se rechazan clics obsoletos y se reconstruye el frame desde el estado actualizado solo después de resolver con las reglas. El host sigue siendo responsable de persistir el checkpoint/progresión y de validarlo contra el backend.
 - Las pruebas demuestran el contrato usando dobles **solo en tests**. Todavía no existe implementación standalone de los puertos del mundo, renderizador visual ni bootstrap autenticado.
+
+### Geometría del mapa remoto real
+
+- `src/adapters/tacticsWorldScene.js` extrae **suelo, muros y caras expuestas** directamente del manifest `world.map.grid` instalado tras un bootstrap remoto autoritativo (sin incluir mapas jugables locales).
+- Reproduce el orden, geometría y reglas de contorno del plan isométrico existente de Chronicles; lo verificamos contra el grid original de la Cripta de las Ocho Casillas, conservado **solo dentro de las pruebas**.
+- `tacticsSceneModelFromRemoteWorld` combina esa geometría con los personajes, enemigos y acciones legales **ya proyectados por el host real**; no atribuye HP, posiciones, IA, interacción o estados inventados. La sesión headless puede consumir el resultado.
+- No sustituye aún la instalación de mapas, hidratación, IA, renderer 3D o SSO. Un cambio de región exige recibir el mapa correspondiente del backend, no reutilizar un grid antiguo.
