@@ -37,3 +37,7 @@
 ## Browser viewport boundary
 - Never mount `mountTacticsThreeViewport` before a valid current scene frame from an authenticated, backend-validated session. Browser host handles auth, persistent actions, asset lifecycle and error fallback.
 - WebGL context failures must surface to the UI, not trigger local world creation. Confirm real browser/Chromium rendering before marking standalone playable.
+
+## Browser-host authority gate
+- Do not register `createTacticsGameHost` with fake loaders or local saves in runtime: a real authenticated, backend-authorized `loadAuthorizedWorld` and `commitTransition` are mandatory.
+- `source: remote` alone is not authentication. Do not advance displayed frames until the authoritative write is acknowledged; stale loads/actions and denied turns must fail closed.
