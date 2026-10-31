@@ -105,3 +105,8 @@
 - `tacticsrules.EngagedEnemies` checks a server-sourced roster and authored engagement profile; it does not accept ranges, positions or enemy IDs from HTTP actions.
 - Keep **Bresenham with diagonal-corner blocking** for sight/detection distinct from straight/diagonal ranged attacks. Proximity without visibility never starts an encounter.
 - The result is a living engaged subset. Do not add it to a saved initiative round without correct party deployment and per-subset scheduler/AI handling; no fallback all-enemy turns or client-selected encounters.
+
+## Engaged enemy initiative subset
+- Use `RollEngagedInitiative` for a server-authorized encounter, NEVER roll all living map enemies by default. `AdvanceEngagedTurn` must receive the selected server-persisted enemy IDs and an initiative order with exactly those enemies plus living party actors.
+- A distant unengaged enemy is not owed a turn and must not keep an encounter alive after the engaged opponents are defeated. Never accept engagedEnemyIDs from the browser or quietly drop a selected enemy's slot.
+- These APIs are pure rules until the real combat reducer safely persists initiative + party footprint and resolves AI/effects; do not connect them as a partial gameplay fallback.

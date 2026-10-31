@@ -188,3 +188,9 @@ Server-authorized `GET /api/tactics/runs/{id}/bootstrap` now returns owner-scope
 `api/internal/tacticsrules/encounter.go` now ports **Bresenham enemy sightline** and the **proximity/engagement decision** from Chronicles. Solid masonry and blocked diagonal corners prevent detection, including between non-cardinal/non-45° tiles. The roster is filtered to **living, visible, in-range enemies**, using only server-authored attack reach (1..16) and optional engage range (1..64). Range defaults to attack reach, matching the Chronicles contract. Missing/malformed authoring, dead parties, enemy turns and corrupted rosters fail closed.
 
 **Sight is not the same as attack.** Ranged attack geometry in `attack.go` remains independently constrained. This pure selector is NOT a complete encounter reducer: deployment, AGI+1d8 roll for the selected enemy subset, enemy AI, damage and persistence are still pending, and no runtime SSO/game map was enabled.
+
+### Initiative only for engaged enemies
+
+`tacticsrules.RollEngagedInitiative` now composes the **real enemy visibility selector** with existing **AGI+1d8** and rolls only the enemies currently detecting the party, preserving Chronicles' engaged-subset semantics. A distant monster does not get initiative simply by existing in the same map. `AdvanceEngagedTurn` validates the persisted selected roster, rejects phantom/missing actor slots, skips dead enemies and ends combat when the final **engaged** enemy dies even if distant enemies remain alive outside that encounter.
+
+These are **pure server decisions** and do not persist a round, deploy the party or execute AI/damage. The eventual world reducer must persist the selected engaged enemy IDs, deploy the party, and safely use this scheduler; its HTTP API does not accept client-provided engagement rosters.
