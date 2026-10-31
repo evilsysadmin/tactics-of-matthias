@@ -69,14 +69,18 @@ test('deterministic center, scale changes, torches and malformed coordinates', (
   assert.deepEqual(tacticsCellToWorld(input, 4, 2, 2), { x: 2, y: 0, z: -2 });
   assert.throws(() => tacticsCellToWorld(input, 7, 1), /Tactics/i);
   assert.throws(() => tacticsSpatialRenderPlan({ version: 99 }), /Tactics/i);
-  assert.deepEqual(tacticsSpatialRenderPlan(input).torches, [
-    { x: 1, y: 5, world: { x: -4.9 - 0.98, y: 0, z: 4.9 - 0.78 } },
-    { x: 5, y: 5, world: { x: 4.9 + 0.94, y: 0, z: 4.9 - 0.7 } },
-    { x: 1, y: 3, world: { x: -4.9 - 0.88, y: 0, z: 0 - 0.82 } },
-    { x: 5, y: 3, world: { x: 4.9 + 0.92, y: 0, z: 0 - 0.72 } },
-    { x: 2, y: 1, world: { x: -2.45 - 0.72, y: 0, z: -4.9 - 0.92 } },
-    { x: 5, y: 1, world: { x: 4.9 + 0.72, y: 0, z: -4.9 - 0.92 } },
-  ]);
+  // Only the source v1 plan is allowed to choose legacy-vs-procedural
+  // dressing. The standalone adapter must not invent a legacy style from id.
+  const plan = tacticsSpatialRenderPlan(input);
+  assert.equal(plan.torches.length, 8);
+  for (let i = 0; i < input.torches.length; i += 1) {
+    const source = input.torches[i];
+    const cell = tacticsCellToWorld(input, source.x, source.y);
+    assert.deepEqual(plan.torches[i], {
+      x: source.x, y: source.y,
+      world: { x: cell.x + source.ox, y: 0, z: cell.z + source.oz },
+    });
+  }
 });
 
 test('the spatial renderer is data-only and never touches the authoritative world', () => {
