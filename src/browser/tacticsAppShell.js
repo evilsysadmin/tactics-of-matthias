@@ -51,7 +51,10 @@ export function mountTacticsAppShell({
     layout.dataset.state = kind;
     retry.hidden = kind !== 'error';
     retry.disabled = kind !== 'error';
-    if (kind === 'loading') {
+    if (kind === 'idle') {
+      statusTitle.textContent = 'Sala táctica lista para conectar';
+      statusDescription.textContent = 'La partida se abrirá tras validar tu sesión.';
+    } else if (kind === 'loading') {
       statusTitle.textContent = 'Preparando expedición…';
       statusDescription.textContent = 'Verificando identidad, mundo y partida.';
     } else if (kind === 'ready') {
