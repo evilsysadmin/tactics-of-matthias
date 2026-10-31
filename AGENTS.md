@@ -24,3 +24,7 @@
 ## Headless session contract
 - `src/tacticsSession.js` is a coordinator, not an authority or game implementation. Never supply local fallback worlds in production; hydrate only server-validated run objects.
 - Preserve action revision checking, state/scene map matching, and host ownership of saves, progression, backend authorization and real-world ports.
+
+## Authoritative scene topology
+- The standalone `tacticsRemoteMapTopology` may only use a current remotely validated map manifest; do not bundle usable fallback maps or infer game rules from tile labels.
+- Test fixtures may reproduce real authored grids to assert parity, but never inject them into production hydration. The host must supply actors and actions from its current, checked world state.
