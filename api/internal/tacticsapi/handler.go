@@ -34,6 +34,7 @@ type Engine interface {
 
 type Map struct {
     ID string `json:"id"`
+    Version int `json:"version,omitempty"`
     Title string `json:"title"`
     Grid []string `json:"grid"`
 }
@@ -80,7 +81,7 @@ func validID(value string) bool {
 }
 func validRun(run Run) bool {
     if !validID(run.ID) || !validID(run.MapID) || !validID(run.Owner) ||
-        run.Map.ID != run.MapID || run.WorldVersion < 0 ||
+        run.Map.ID != run.MapID || run.Map.Version < 0 || run.WorldVersion < 0 ||
         (run.Status != "active" && run.Status != "completed" && run.Status != "defeated") ||
         !json.Valid(run.State) || len(run.State) == 0 { return false }
     height := len(run.Map.Grid)

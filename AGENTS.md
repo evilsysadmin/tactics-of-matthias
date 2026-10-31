@@ -91,3 +91,8 @@
 - `StageMoveEntry` must use only previously validated `Run.State`, recheck the actual move, then retrieve authored content from a **server-private** ContentCatalog. Never serialize trap definitions into `Run.Map`/bootstrap responses or derive them from client requests.
 - Do not commit `MoveStage.Pending`: it intentionally retains the previous worldVersion and must pass full encounter, enemy AI and scheduler resolution before a valid next version can be persisted.
 - Terminal traps may set a validated defeated state; stale/forged turns, mismatched catalog geometry and unknown authored effects must fail closed.
+
+## Private authored map catalog v1
+- `api/internal/tacticscatalog` uses an explicit absolute server-side directory; only versioned strict manifests are read via a confined `os.Root`. No default world/maps, remote URLs or client-authored content.
+- Always match `Run.Map.Version` to private `ContentCatalog.Revision` plus grid/ID; a content revision change cannot silently alter an existing expedition. Do not quietly drop unsupported authored triggers, interactables, treasures or exits.
+- Ash Vault geometry/trap tests are provenance-backed **test fixtures**, not a playable map, runtime manifest, or full content migration.

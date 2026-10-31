@@ -178,3 +178,19 @@ func TestStateFlagsAndTerminalMustBeCoherent(t *testing.T){
  if _,_,err:=DecodeState(next);err!=nil{t.Fatalf("valid terminal denied: %v",err)}
  if reflect.DeepEqual(run,next){t.Fatal("terminal changed no state")}
 }
+
+func TestStageRequiresExactMapRevisionEvenIfGridMatches(t *testing.T){
+ run:=vaultRun(7);run.Map.Version=3
+ _,board,err:=DecodeState(run);if err!=nil{t.Fatal(err)}
+ move,err:=tacticsrules.DecideMove(board,"matthias",tacticsrules.Cell{X:1,Y:4})
+ if err!=nil{t.Fatal(err)}
+ content:=PrivateMapContent{
+  MapID:"ash-vault",Revision:4,Grid:vault,
+  Traps:[]tacticsrules.AuthoredTrap{privateTrap()},
+ }
+ if _,err:=StageMoveEntry(context.Background(),run,move,&catalog{world:content});
+  !errors.Is(err,ErrInvalidContent){t.Fatalf("wrong map revision accepted: %v",err)}
+ content.Revision=3
+ if _,err:=StageMoveEntry(context.Background(),run,move,&catalog{world:content});
+  err!=nil{t.Fatalf("correct map revision rejected: %v",err)}
+}
