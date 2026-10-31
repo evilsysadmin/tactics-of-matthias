@@ -68,3 +68,7 @@
 - `api/internal/tacticsrules` owns pure movement legality decisions based on the *server's* state and current map. Do not trust client-supplied party/enemy positions or use a local test map as a runtime fallback.
 - The movement decision is NOT the complete server Engine. Downstream traps/content effects, real initiative, enemy AI and campaign transitions are mandatory before hooking it to `tacticsapi.Engine.Apply`.
 - Preserve source parity: exploration moves do not consume a tactical turn; combat moves have individual party footprints and advance initiative. Deny enemy turns, terminal/dead actors, overlapping pieces, walls, exits and occupied enemy cells.
+
+## Go attack target parity
+- `api/internal/tacticsrules/attack.go` returns attack *decisions*, never damage, RNG, loot, XP or a completed turn. Damage and first-contact initiative must be resolved by the future server engine from trusted authored profiles/state, never from the client.
+- Keep exact Chronicles geometries: adjacent Manhattan=1, orthogonal lines, diagonal squares, line ray, line-of-sight intermediate walls/living enemies, and explicit reach bonuses. A ranged exploration attempt is an initiative boundary, NOT a free attack.
