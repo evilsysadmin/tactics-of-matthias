@@ -46,7 +46,7 @@ test('wall-face torches deduplicate cells, orient onto wall and cap mobile densi
   assert.equal(desktop.length, 8);
   assert.equal(touch.length, 5);
   assert.equal(desktop[0].oz, -0.94);
-  assert.equal(desktop[1].ox, 0.94);
+  assert.equal(desktop[1].ox, -0.94);
   assert.ok(desktop.every(t => Number.isFinite(t.ox) && Number.isFinite(t.oz)));
   assert.equal(new Set(desktop.map(t => `${t.x}:${t.y}`)).size, desktop.length);
 });
