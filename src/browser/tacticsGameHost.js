@@ -1,4 +1,4 @@
-import { tacticsCreateSession, tacticsApplySessionRequest, tacticsReconcileServerSession } from '../tacticsSession.js';
+import { tacticsCreateSession, tacticsApplySessionRequest, tacticsReconcileServerSession, tacticsReadOnlyTerminal } from '../tacticsSession.js';
 import { mountTacticsThreeViewport } from '../render/tacticsThreeViewport.js';
 
 // Lifecycle ONLY: authentication, world/turn authority and remote persistence
@@ -24,9 +24,9 @@ export function createTacticsGameHost({
   let status = 'idle';
   let busy = false;
   let disposed = false;
-  const notify = (kind, error = null) => {
+  const notify = (kind, error = null, runStatus = null) => {
     status = kind;
-    onStatus(Object.freeze({ kind, error }));
+    onStatus(Object.freeze({ kind, error, runStatus }));
   };
   const valid = (generation, signal) => !disposed
     && revision === generation && !signal.aborted;
@@ -62,6 +62,17 @@ export function createTacticsGameHost({
         signal,
       });
       if (!valid(generation, signal)) return false;
+      // A terminal server outcome must STOP all commands, clear the old
+      // actionable canvas, and show a read-only result (not an error).
+      if (confirmedWorld?.runStatus === 'defeated'
+        || confirmedWorld?.runStatus === 'completed') {
+        const final = tacticsReadOnlyTerminal(confirmedWorld, before);
+        viewport.dispose();
+        viewport = null;
+        session = final;
+        notify('finished', null, final.runStatus);
+        return true;
+      }
       // Rehydrate the actual server outcome. A Boolean ack or a mismatched
       // run/version must NEVER make a predicted local move visible.
       const confirmed = tacticsReconcileServerSession(before, confirmedWorld, ports);
@@ -90,6 +101,12 @@ export function createTacticsGameHost({
     try {
       const world = await loadAuthorizedWorld({ signal: controller.signal });
       if (!valid(generation, controller.signal)) return false;
+      if (world?.runStatus === 'defeated' || world?.runStatus === 'completed') {
+        const final = tacticsReadOnlyTerminal(world);
+        session = final;
+        notify('finished', null, final.runStatus);
+        return true;
+      }
       const next = tacticsCreateSession(world, ports);
       if (!valid(generation, controller.signal)) return false;
       const mounted = viewportFactory({

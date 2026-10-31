@@ -94,3 +94,40 @@ export function tacticsReconcileServerSession(previous, world, ports) {
     frame: project(state, ports),
   });
 }
+
+/**
+ * Read-only terminal records are NOT active game sessions. Never hydrate an
+ * actionable scene or synthesize a local world from a terminal server run.
+ */
+export function tacticsReadOnlyTerminal(world, previous = null) {
+  const terminal = world?.runStatus === 'defeated' || world?.runStatus === 'completed';
+  const phase = world?.state?.phase;
+  const matchingPhase = world?.runStatus === 'defeated'
+    ? phase === 'defeated'
+    : phase === 'completed' || phase === 'escaped';
+  const party = world?.state?.party;
+  const partyValid = Array.isArray(party) && party.length > 0
+    && party.length <= 16 && party.every(member =>
+      typeof member?.id === 'string' && member.id.length > 0
+      && Number.isSafeInteger(member.hp) && member.hp >= 0);
+  if (!terminal || world.source !== 'remote'
+    || typeof world.runId !== 'string' || !world.runId
+    || typeof world.currentMapId !== 'string' || !world.currentMapId
+    || world.map?.id !== world.currentMapId
+    || world.state?.mapId !== world.currentMapId
+    || !partyValid || !matchingPhase
+    || (world.runStatus === 'defeated' && party.some(member => member.hp !== 0))
+    || !Number.isSafeInteger(world.worldVersion) || world.worldVersion < 0
+    || (previous && (world.runId !== previous.runId
+      || world.worldVersion !== previous.worldVersion + 1))) {
+    throw new TypeError('Tactics terminal outcome is not a valid authorized run');
+  }
+  return Object.freeze({
+    runId: world.runId,
+    worldVersion: world.worldVersion,
+    revision: previous ? previous.revision + 1 : 0,
+    runStatus: world.runStatus,
+    state: null,
+    frame: null,
+  });
+}

@@ -1,4 +1,5 @@
 import { tacticsRemoteMapTopology } from '../adapters/tacticsWorldScene.js';
+import { tacticsReadOnlyTerminal } from '../tacticsSession.js';
 
 const RUN_ID = /^[A-Za-z0-9_-]{1,128}$/;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
@@ -28,13 +29,27 @@ function approvedEndpoint(baseURL, approvedOrigin) {
 function validateWorld(world, runId) {
   if (!world || typeof world !== 'object' || Array.isArray(world)
     || world.source !== 'remote' || world.runId !== runId
-    || world.runStatus !== 'active'
+    || !['active', 'defeated', 'completed'].includes(world.runStatus)
     || !Number.isSafeInteger(world.worldVersion) || world.worldVersion < 0
     || !world.state || typeof world.state !== 'object' || Array.isArray(world.state)) {
     throw new TacticsApiError('invalid-world');
   }
-  try { tacticsRemoteMapTopology(world); }
-  catch { throw new TacticsApiError('invalid-world'); }
+  try {
+    if (world.runStatus === 'active') {
+      tacticsRemoteMapTopology(world);
+    } else {
+      // Map geometry is still checked even though it is NEVER mounted as
+      // an actionable Three scene for an already terminal campaign.
+      const grid = world.map?.grid;
+      if (!Array.isArray(grid) || !grid.length || grid.length > 256
+        || typeof grid[0] !== 'string' || grid[0].length < 1
+        || grid[0].length > 256 || grid.some(row =>
+          typeof row !== 'string' || row.length !== grid[0].length)) {
+        throw new TypeError('Invalid terminal map');
+      }
+      tacticsReadOnlyTerminal(world);
+    }
+  } catch { throw new TacticsApiError('invalid-world'); }
   return world;
 }
 

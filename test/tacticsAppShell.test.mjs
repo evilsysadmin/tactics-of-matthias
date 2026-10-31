@@ -102,3 +102,23 @@ test('disposing an outdated shell does not erase a newer mount or accept late ca
   assert.equal(app.state, 'disposed');
   await assert.rejects(app.start(), /disposed/);
 });
+
+test('server-confirmed terminal result is shown without exposing internal errors or retry', async () => {
+  const { root } = createDocument();
+  let report;
+  const app = mountTacticsAppShell({
+    root, loadAuthorizedWorld: async () => ({}),
+    commitTransition: async () => ({}),
+    ports: { hydrateState: () => ({}), projectScene: () => ({}), actionPorts: {} },
+    hostFactory: ({ onStatus }) => {
+      report = onStatus;
+      return { start: async () => true, dispose() {} };
+    },
+  });
+  report({ kind: 'finished', runStatus: 'defeated' });
+  assert.equal(app.state, 'finished');
+  assert.match(find(root, 'tactics-app__status-title').textContent, /caído/);
+  assert.match(find(root, 'tactics-app__status-description').textContent, /servidor/);
+  assert.equal(find(root, 'tactics-app__retry').hidden, true);
+  app.dispose();
+});

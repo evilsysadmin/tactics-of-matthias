@@ -96,3 +96,7 @@
 - `api/internal/tacticscatalog` uses an explicit absolute server-side directory; only versioned strict manifests are read via a confined `os.Root`. No default world/maps, remote URLs or client-authored content.
 - Always match `Run.Map.Version` to private `ContentCatalog.Revision` plus grid/ID; a content revision change cannot silently alter an existing expedition. Do not quietly drop unsupported authored triggers, interactables, treasures or exits.
 - Ash Vault geometry/trap tests are provenance-backed **test fixtures**, not a playable map, runtime manifest, or full content migration.
+
+## Terminal runs are not active worlds
+- Keep owner-scoped terminal GET records readable, but POST to a terminal run must fail before any engine effects or storage writes. Do not resurrect a defeated campaign.
+- Client `tacticsReadOnlyTerminal` must verify the run, next server version and terminal phase. Render a non-actionable read-only result, never a playable scene or a synthetic victory.

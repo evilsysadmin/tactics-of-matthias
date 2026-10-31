@@ -45,7 +45,7 @@ export function mountTacticsAppShell({
   let host = null;
   let state = 'idle';
 
-  const status = ({ kind, error = null }) => {
+  const status = ({ kind, error = null, runStatus = null }) => {
     if (disposed) return;
     state = kind;
     layout.dataset.state = kind;
@@ -60,6 +60,12 @@ export function mountTacticsAppShell({
     } else if (kind === 'ready') {
       statusTitle.textContent = 'Tablero preparado';
       statusDescription.textContent = 'Las jugadas se validan y confirman en el servidor.';
+    } else if (kind === 'finished') {
+      statusTitle.textContent = runStatus === 'defeated'
+        ? 'La compañía ha caído'
+        : 'Expedición completada';
+      statusDescription.textContent =
+        'Resultado confirmado por el servidor. Esta expedición es de solo lectura.';
     } else if (kind === 'unavailable') {
       statusTitle.textContent = 'Servidor de Tactics pendiente';
       statusDescription.textContent =
