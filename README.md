@@ -113,3 +113,10 @@ npm run build
 En `http://127.0.0.1:5173` se muestra la interfaz Tactics y el estado **«Servidor de Tactics pendiente»**. Esto es intencional: **no hay cuenta, partida ni mundo ficticios**. La interfaz se habilitará cuando ShadowOps Infra y una API Tactics independiente puedan proporcionar loader SSO autorizado, hidratación de mundo/reglas y confirmación de checkpoints; los tests Node actuales no sustituyen una prueba de navegador WebGL.
 
 La CI comprueba tests y `vite build` en cada PR. Este workflow de código fuente no despliega a Cloudflare Pages ni modifica la Home actual de Chronicles.
+
+### Primera frontera HTTP propia (sin despliegue)
+
+- `api/internal/tacticsapi` incorpora un **handler HTTP real** con `GET /api/tactics/runs/{id}/bootstrap` y `POST /api/tactics/runs/{id}/actions`. La lectura exige identidad verificada y un run activo perteneciente al usuario; la escritura exige `expectedWorldVersion`, acción estricta, validación del **motor en servidor** y actualización atómica CAS por propietario/ID/versión.
+- El navegador nunca puede enviar un estado de mundo arbitrario para guardarlo. No hay aceptación optimista de ataques, movimientos, otros propietarios, runs terminales ni versiones obsoletas. Respuestas sin cache y errores que no revelan información del almacén o del JWT.
+- El handler **no incorpora auth simulada ni almacén en producción**: `Authenticator` debe verificar el token ShadowOps con audiencia propia de Tactics; `Store` debe ser persistente y owner-scoped; `Engine` debe ejecutar las reglas reales. El constructor rechaza los tres ausentes. Las pruebas Go usan puertos de prueba únicamente para verificar aislamiento, conflictos y seguridad.
+- La API aún no tiene binario de arranque, IdP/SSO, store Mongo propio ni servidor de juego conectado, así que **NO es desplegable/jugable**. Los guardados Chronicles quedan completamente independientes.

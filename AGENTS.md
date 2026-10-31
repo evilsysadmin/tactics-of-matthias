@@ -46,3 +46,8 @@
 - Vite 6.4.3 and Three 0.186.1 are pinned; `npm test && npm run build` must pass on PR and main. The page is **not playable** until a real SSO/API Tactics integration supplies the required authenticated host ports.
 - Never wire demo worlds, a fake identity, unacknowledged checkpoint writes, or the Chronicles save endpoint into `src/browser/main.js`. Treat an unavailable service as a visible, honest status, not an opportunity to bypass auth.
 - The source workflow builds only; deployment/production ownership remains with `evilsysadmin/shadowops-infra`.
+
+## Independent API authority
+- Go HTTP layer resides in `api/internal/tacticsapi`. A real ShadowOps verifier must check the dedicated `tactics` audience, issuer, signature, expiry and session freshness; do not reuse Chronicles bearer tokens or trust unverified username headers.
+- Server-side engine revalidates every move/attack against authoritative run state. `Store` must atomically compare-and-swap by **owner + run ID + world version**, in a separate Tactics collection. Never expose an unconfigured backend or demo store in production.
+- API tests use in-memory doubles only to verify route authority; passing them does not establish a deployable SSO or Mongo integration. Do not change Chronicles save schemas.

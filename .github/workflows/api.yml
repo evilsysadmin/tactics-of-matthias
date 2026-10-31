@@ -1,0 +1,36 @@
+name: Tactics API contracts
+
+on:
+  pull_request:
+    paths:
+      - 'api/**'
+      - '.github/workflows/api.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - '.github/workflows/api.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tactics-api-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: Tactics Go API contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: api/go.mod
+          cache: false
+      - run: go test ./... -count=1
+      - run: go vet ./...
