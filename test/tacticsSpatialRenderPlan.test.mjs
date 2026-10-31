@@ -72,7 +72,8 @@ test('deterministic center, scale changes, torches and malformed coordinates', (
   // Only the source v1 plan is allowed to choose legacy-vs-procedural
   // dressing. The standalone adapter must not invent a legacy style from id.
   const plan = tacticsSpatialRenderPlan(input);
-  assert.equal(plan.torches.length, 8);
+  // 26 unique wall cells / stride 4 = seven procedural torches.
+  assert.equal(plan.torches.length, 7);
   for (let i = 0; i < input.torches.length; i += 1) {
     const source = input.torches[i];
     const cell = tacticsCellToWorld(input, source.x, source.y);
