@@ -1,5 +1,11 @@
 # AGENTS.md — Tactics of Matthias
 
+## Cuenta GitHub de ShadowOps (obligatoria)
+
+- Para operaciones en repositorios `evilsysadmin/*` — lecturas, escrituras, PR, checks, merges y workflows — usar explícitamente la conexión GitHub **ShadowOps** (perfil `evilsysadmin`). Cuando esté disponible `link_id`, seleccionar el **ID vigente** de `link_name: ShadowOps` en el esquema actual; nunca depender de la cuenta por defecto con varias conexiones.
+- **Nullforge** (perfil `nullforgeops`) es una conexión independiente. No usarla para repos ShadowOps ni como alternativa automática. Si GitHub falla, revisar primero la selección explícita de ShadowOps y comunicar el bloqueo.
+- Comprobar propietario/repo, SHA y CI antes de operar; no persistir `link_id`, OAuth tokens ni credenciales en Git porque los IDs de conexión pueden cambiar.
+
 ## Ownership
 - This repository owns the eventual standalone **isometric Tactics RPG**, not Chronicles/MM3.
 - Source of the original Tactics implementation: https://github.com/evilsysadmin/chronicles-of-matthias
