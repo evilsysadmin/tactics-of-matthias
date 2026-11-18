@@ -9,8 +9,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: tactics-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # One PR revision supersedes another; a tested main SHA is never discarded.
+  group: tactics-ci-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   profiles:
