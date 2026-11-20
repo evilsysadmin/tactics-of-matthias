@@ -35,6 +35,7 @@ jobs:
           --health-retries 12
     env:
       TACTICS_MONGO_INTEGRATION_URI: mongodb://127.0.0.1:27017/?directConnection=true
+      GOTOOLCHAIN: local
     timeout-minutes: 6
     defaults:
       run:
@@ -43,8 +44,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: api/go.mod
+          go-version: '1.27.4'
           cache: true
           cache-dependency-path: api/go.sum
+      - name: Assert patched Go compiler
+        run: test "$(go env GOVERSION)" = 'go1.27.4'
+      - name: Verify checked-in dependency sums
+        run: go mod verify
       - run: go test ./... -count=1
       - run: go vet ./...
+      - name: Install pinned Go vulnerability scanner
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.10.0
+      - name: Reject reachable known Go vulnerabilities
+        run: |
+          "$(go env GOPATH)/bin/govulncheck" ./...
