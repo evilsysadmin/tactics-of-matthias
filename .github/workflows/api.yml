@@ -51,6 +51,23 @@ jobs:
         run: test "$(go env GOVERSION)" = 'go1.27.4'
       - name: Verify checked-in dependency sums
         run: go mod verify
+      - name: Regenerate reviewed fixed-compress Go lock (temporary)
+        run: |
+          set -euo pipefail
+          go get github.com/klauspost/compress@v1.20.2
+          go mod tidy
+          go mod verify
+          git diff -- go.mod go.sum
+      - name: Export resolver lock for source review (temporary)
+        uses: actions/upload-artifact@v7
+        with:
+          name: tactics-go-compress-lock-review
+          path: |
+            api/go.mod
+            api/go.sum
+          if-no-files-found: error
+      - name: Block merge until generated lock is committed (temporary)
+        run: exit 1
       - run: go test ./... -count=1
       - run: go vet ./...
       - name: Install pinned Go vulnerability scanner
