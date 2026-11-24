@@ -75,14 +75,17 @@ export function tacticsSpatialRenderPlan(frame, { cellSize = TACTICS_ISOMETRIC_C
     }),
     // Torch source offsets are renderer-authored world-unit values, not
     // measured in grid cells; preserve their precise authored displacement.
-    torches: Object.freeze((frame.torches || []).map(torch => Object.freeze({
-      x: torch.x,
-      y: torch.y,
-      world: Object.freeze({
-        ...tacticsCellToWorld(frame, torch.x, torch.y, size),
-        x: tacticsCellToWorld(frame, torch.x, torch.y, size).x + torch.ox,
-        z: tacticsCellToWorld(frame, torch.x, torch.y, size).z + torch.oz,
-      }),
-    }))),
+    torches: Object.freeze((frame.torches || []).map(torch => {
+      const base = tacticsCellToWorld(frame, torch.x, torch.y, size);
+      return Object.freeze({
+        x: torch.x,
+        y: torch.y,
+        world: Object.freeze({
+          x: base.x + torch.ox,
+          y: base.y,
+          z: base.z + torch.oz,
+        }),
+      });
+    })),
   });
 }

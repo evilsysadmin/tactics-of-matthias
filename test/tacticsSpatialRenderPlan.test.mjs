@@ -84,6 +84,25 @@ test('deterministic center, scale changes, torches and malformed coordinates', (
   }
 });
 
+test('torch projections preserve world-unit offsets at custom scales and stay immutable', () => {
+  const input = frame();
+  const size = 3.25;
+  const plan = tacticsSpatialRenderPlan(input, { cellSize: size });
+  assert.equal(plan.torches.length, input.torches.length);
+  for (let i = 0; i < input.torches.length; i += 1) {
+    const torch = input.torches[i];
+    const base = tacticsCellToWorld(input, torch.x, torch.y, size);
+    assert.deepEqual(plan.torches[i], {
+      x: torch.x,
+      y: torch.y,
+      world: { x: base.x + torch.ox, y: base.y, z: base.z + torch.oz },
+    });
+    assert.ok(Object.isFrozen(plan.torches[i]));
+    assert.ok(Object.isFrozen(plan.torches[i].world));
+  }
+  assert.ok(Object.isFrozen(plan.torches));
+});
+
 test('the spatial renderer is data-only and never touches the authoritative world', () => {
   const input = frame();
   const before = JSON.stringify(input);
