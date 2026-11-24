@@ -57,6 +57,43 @@ test('constructs native Three scene graph, real instanced crypt geometry and cam
   assert.equal(rendered.scene.children.length, 0);
 });
 
+
+test('empty wall maps release allocated but uninstanced scene resources exactly once', () => {
+  const normal = frame();
+  const floorOnly = {
+    ...normal,
+    map: { ...normal.map, walls: [], wallFaces: [] },
+    torches: [],
+  };
+  const originalGeometryDispose = THREE.BoxGeometry.prototype.dispose;
+  const originalMaterialDispose = THREE.MeshStandardMaterial.prototype.dispose;
+  let disposedGeometries = 0;
+  let disposedMaterials = 0;
+  THREE.BoxGeometry.prototype.dispose = function (...args) {
+    disposedGeometries += 1;
+    return originalGeometryDispose.apply(this, args);
+  };
+  THREE.MeshStandardMaterial.prototype.dispose = function (...args) {
+    disposedMaterials += 1;
+    return originalMaterialDispose.apply(this, args);
+  };
+  let rendered = null;
+  try {
+    rendered = createTacticsThreeScene(floorOnly);
+    assert.equal(rendered.scene.getObjectByName('tactics-floors').count, 19);
+    assert.equal(rendered.scene.getObjectByName('tactics-walls'), undefined);
+    rendered.dispose();
+    rendered.dispose();
+    // The non-instanced wall geometry/material must be owned too.
+    assert.equal(disposedGeometries, 2);
+    assert.equal(disposedMaterials, 2);
+  } finally {
+    rendered?.dispose();
+    THREE.BoxGeometry.prototype.dispose = originalGeometryDispose;
+    THREE.MeshStandardMaterial.prototype.dispose = originalMaterialDispose;
+  }
+});
+
 test('picking is limited to legal markers, actor selection and live scene-owned meshes', () => {
   const rendered = createTacticsThreeScene(frame());
   const move = rendered.root.getObjectByName('tactics-move-1-4');
