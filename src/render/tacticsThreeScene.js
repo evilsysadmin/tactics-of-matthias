@@ -7,6 +7,10 @@ import { tacticsSpatialRenderPlan } from './tacticsSpatialRenderPlan.js';
 const MAX_RENDER_CELLS = 12000;
 
 function addInstanced(root, name, entries, geometry, material, height, owned) {
+  // Geometry and material are allocated before this call; even empty maps
+  // own and must release them (e.g. a floor-only map with no wall instances).
+  owned.add(geometry);
+  owned.add(material);
   if (!entries.length) return null;
   const mesh = new THREE.InstancedMesh(geometry, material, entries.length);
   mesh.name = name;
@@ -18,8 +22,6 @@ function addInstanced(root, name, entries, geometry, material, height, owned) {
   });
   mesh.instanceMatrix.needsUpdate = true;
   root.add(mesh);
-  owned.add(geometry);
-  owned.add(material);
   return mesh;
 }
 
